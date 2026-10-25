@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 東京賞楓銀杏・聖誕市集・YOASOBI 8天7夜互動行程表</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS & JS for Interactive Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .slot-dropzone {
+            transition: all 0.2s ease;
+        }
+        .slot-dropzone.drag-over {
+            background-color: #fef3c7 !important;
+            border-color: #f59e0b !important;
+            transform: scale(1.01);
+        }
+        .draggable-card {
+            cursor: grab;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .draggable-card:active {
+            cursor: grabbing;
+        }
+        .draggable-card.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+        /* Map Marker Custom Styles */
+        .custom-pin {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+            border: 2px solid white;
+            transition: transform 0.2s ease;
+        }
+        .custom-pin:hover {
+            transform: scale(1.2);
+            z-index: 1000 !important;
+        }
+        .hotel-pulse {
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(225, 29, 72, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Top Navigation & Header -->
+    <header class="bg-gradient-to-r from-slate-900 via-amber-950 to-slate-900 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-[1600px] mx-auto px-4 py-3 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-slate-900 font-black text-xl shadow-md">
+                        🍁
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h1 class="text-lg md:text-xl font-black tracking-tight">2026 東京銀杏楓紅・聖誕市集・YOASOBI 之旅</h1>
+                            <span class="text-xs bg-rose-600 text-white px-2.5 py-0.5 rounded-full font-bold">11/29 (日) - 12/6 (日)</span>
+                        </div>
+                        <p class="text-xs text-amber-200/90 mt-0.5">
+                            <i class="fa-solid fa-hotel mr-1"></i>全程基地：<strong>品川王子大飯店 (Shinagawa Prince Hotel)</strong> ｜ 12/6 提前2.5hr 搭 N'EX 抵達成田
+                        </p>
+                    </div>
+                </div>
+                <button onclick="resetDefaultItinerary()" class="lg:hidden text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg border border-white/20 transition">
+                    <i class="fa-solid fa-rotate-left mr-1"></i>重置
+                </button>
+            </div>
+
+            <!-- Main View Tabs -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+                <button onclick="switchMainTab('itinerary')" id="tab-btn-itinerary" class="tab-btn bg-amber-500 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs md:text-sm whitespace-nowrap flex items-center gap-1.5 shadow-sm transition">
+                    <i class="fa-solid fa-calendar-days"></i> 互動行程與地圖
+                </button>
+                <button onclick="switchMainTab('transport')" id="tab-btn-transport" class="tab-btn bg-white/10 hover:bg-white/20 text-white font-medium px-3.5 py-2 rounded-xl text-xs md:text-sm whitespace-nowrap flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-train-subway"></i> 機場 & 日光/高尾山交通攻略
+                </button>
+                <button onclick="switchMainTab('illumination')" id="tab-btn-illumination" class="tab-btn bg-white/10 hover:bg-white/20 text-white font-medium px-3.5 py-2 rounded-xl text-xs md:text-sm whitespace-nowrap flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-tree"></i> 聖誕市集・竹燈・ARTE 總表
+                </button>
+                <button onclick="switchMainTab('foliage')" id="tab-btn-foliage" class="tab-btn bg-white/10 hover:bg-white/20 text-white font-medium px-3.5 py-2 rounded-xl text-xs md:text-sm whitespace-nowrap flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-leaf"></i> 銀杏楓葉 & 採買指南
+                </button>
+                <button onclick="resetDefaultItinerary()" class="hidden lg:flex items-center gap-1 text-xs bg-rose-500/20 hover:bg-rose-500/40 text-rose-200 border border-rose-400/30 px-3 py-2 rounded-xl transition ml-2" title="恢復為預設最優行程">
+                    <i class="fa-solid fa-rotate-left"></i> 重置行程
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 max-w-[1600px] w-full mx-auto p-3 md:p-5">
+
+        <!-- ==================== TAB 1: INTERACTIVE ITINERARY & MAP ==================== -->
+        <section id="view-itinerary" class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            
+            <!-- Left Column: Day Selector & Morning/Afternoon/Evening Slots (7 cols on lg) -->
+            <div class="lg:col-span-7 flex flex-col gap-4">
+                
+                <!-- Quick Status Banner -->
+                <div class="bg-white rounded-2xl p-3.5 shadow-sm border border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 text-xs md:text-sm text-slate-700">
+                        <span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-1 rounded-lg">
+                            <i class="fa-solid fa-hand-pointer mr-1"></i>動態調整模式
+                        </span>
+                        <span>可直接<strong>拖曳卡片</strong>交換早/午/晚時段，或點卡片右上角<strong>「⇄ 移至」</strong>調整日期！</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="openPoolModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus-circle"></i> 備選景點庫 / 新增行程 (<span id="pool-count-badge">0</span>)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Day Filter Pills -->
+                <div class="bg-white rounded-2xl p-3 shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">選擇檢視日期（點擊連動右側地圖動線）</span>
+                        <button onclick="selectDay('ALL')" id="day-pill-ALL" class="text-xs font-bold px-3 py-1 rounded-lg bg-slate-800 text-white transition">
+                            顯示全部 8 天總覽
+                        </button>
+                    </div>
+                    <div id="day-pills-container" class="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+                        <!-- Generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Days Itinerary Container -->
+                <div id="days-list-container" class="flex flex-col gap-5">
+                    <!-- Generated by JS -->
+                </div>
+            </div>
+
+            <!-- Right Column: Sticky Interactive Map & Relative Position Radar (5 cols on lg) -->
+            <div class="lg:col-span-5 lg:sticky lg:top-20 flex flex-col gap-4">
+                <div class="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+                    <!-- Map Top Bar -->
+                    <div class="p-3.5 bg-slate-900 text-white flex items-center justify-between">
+                        <div>
+                            <h2 class="font-bold text-sm md:text-base flex items-center gap-2">
+                                <i class="fa-solid fa-map-location-dot text-amber-400"></i>
+                                <span id="map-header-title">東京相對位置與順路動線圖</span>
+                            </h2>
+                            <p id="map-header-subtitle" class="text-xs text-slate-300 mt-0.5">
+                                紅星 ★ 為「品川王子大飯店」，點擊左側卡片可定位距離與轉乘路線
+                            </p>
+                        </div>
+                        <div class="flex gap-1.5">
+                            <button onclick="focusHotelBase()" class="bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition shadow" title="回到品川王子大飯店基準點">
+                                <i class="fa-solid fa-star mr-1"></i>品川基地
+                            </button>
+                            <button onclick="fitMapToCurrentView()" class="bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg transition" title="縮放至全部標記">
+                                <i class="fa-solid fa-expand"></i> 全景
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Map Canvas -->
+                    <div id="tokyo-map" class="w-full h-[380px] md:h-[460px] z-10"></div>
+
+                    <!-- Map Legend & Relative Direction Guide -->
+                    <div class="p-3.5 bg-slate-50 border-t border-slate-200 text-xs">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5 pb-2 border-b border-slate-200">
+                            <span class="font-bold text-slate-700">📍 相對位置色標（以品川飯店為中心）：</span>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-rose-600 inline-block"></span>品川飯店</span>
+                                <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>☀️白天</span>
+                                <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-emerald-600 inline-block"></span>🌤️下午</span>
+                                <span class="inline-flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-indigo-600 inline-block"></span>🌙晚上</span>
+                            </div>
+                        </div>
+
+                        <!-- Selected Spot Distance & Direction Info Box -->
+                        <div id="selected-spot-info" class="bg-white p-3 rounded-xl border border-slate-200 shadow-inner">
+                            <div class="flex items-start justify-between gap-2">
+                                <div>
+                                    <span class="text-[11px] font-bold text-rose-600 uppercase">相對位置雷達（距離品川王子大飯店）</span>
+                                    <h4 id="radar-spot-name" class="font-bold text-slate-900 text-sm mt-0.5">點擊左側任一行程卡片查看相對方位</h4>
+                                </div>
+                                <span id="radar-spot-dist" class="bg-slate-100 text-slate-800 font-black px-2.5 py-1 rounded-lg text-xs whitespace-nowrap">
+                                    基準點 0 km
+                                </span>
+                            </div>
+                            <p id="radar-spot-transit" class="text-slate-600 mt-1.5 text-xs leading-relaxed">
+                                💡 <strong>品川王子大飯店交通優勢：</strong>過馬路即是 JR/京急「品川站」。往北10分達東京站、20分達新宿/澀谷；往南16分達羽田、22分達橫濱；並有 N'EX 直達成田機場。
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: TRANSPORT & TICKETS GUIDE ==================== -->
+        <section id="view-transport" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <h2 class="text-xl font-black text-slate-900 flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-plane-arrival text-amber-500"></i>
+                    頭尾機場交通 & 近郊特快車（日光／高尾山）必買票券總整理
+                </h2>
+                <p class="text-sm text-slate-600 mb-6">
+                    針對您全程入住<strong>「品川王子大飯店 (4-10-30 Takanawa, Minato-ku)」</strong>，為您精算最順暢、免拖大行李轉乘的時刻表與預訂須知：
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Card 1: Day 1 Haneda Early Morning -->
+                    <div class="rounded-2xl border-2 border-sky-200 bg-sky-50/50 p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="bg-sky-600 text-white text-xs font-bold px-3 py-1 rounded-full">Day 1｜11/29 (日) 早上</span>
+                                <span class="text-xs font-bold text-sky-800">不需預訂・直接刷 Suica/IC卡</span>
+                            </div>
+                            <h3 class="text-lg font-black text-slate-900 mb-2">✈️ 羽田機場飯店 ➔ 品川王子大飯店（早班車）</h3>
+                            <p class="text-xs text-slate-600 mb-3 leading-relaxed">
+                                您 11/29 00:50 抵達羽田並入住羽田機場飯店後，早上搭乘<strong>「京急線（Keikyu Line）」</strong>從羽田機場（第3航廈或第1・2航廈）<strong>一班車直達「品川站（高輪口）」</strong>，過馬路即達品川王子大飯店寄放行李！
+                            </p>
+                            <div class="bg-white rounded-xl p-3.5 border border-sky-200 space-y-2 text-xs">
+                                <div class="font-bold text-sky-900 border-b border-slate-100 pb-1.5">🕒 週日早上羽田機場第3航廈 ➔ 品川站 時刻表：</div>
+                                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                                    <span class="font-bold text-slate-700">首班車｜05:15 發車 (普通)</span>
+                                    <span class="text-emerald-700 font-bold">➔ 05:37 抵達品川 (22分)</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1 border-b border-slate-100">
+                                    <span class="font-bold text-slate-700">次班車｜05:26 發車 (エアポート急行)</span>
+                                    <span class="text-emerald-700 font-bold">➔ 05:44 抵達品川 (18分)</span>
+                                </div>
+                                <div class="flex justify-between items-center py-1 bg-amber-50 px-2 rounded-lg">
+                                    <span class="font-black text-amber-900">⭐ 推薦六點出頭｜06:02 / 06:09 / 06:16 發</span>
+                                    <span class="text-amber-900 font-black">➔ 06:20~06:33 抵達品川</span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 pt-1">
+                                    💡 06:30 寄放完行李後，從品川搭 JR 山手線（僅10分鐘）約 06:50 就到東京站八重洲口拍寶可夢雕像（完全避開人潮）！
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2: Day 8 Narita Express Return -->
+                    <div class="rounded-2xl border-2 border-rose-200 bg-rose-50/50 p-5 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="bg-rose-600 text-white text-xs font-bold px-3 py-1 rounded-full">Day 8｜12/6 (日) 早上回程</span>
+                                <span class="text-xs font-bold text-rose-700 bg-rose-100 px-2.5 py-1 rounded-lg">⚠️ 強烈建議事先線上買票劃位</span>
+                            </div>
+                            <h3 class="text-lg font-black text-slate-900 mb-2">🚄 品川站 ➔ 成田機場（提前 2.5 小時抵達）</h3>
+                            <p class="text-xs text-slate-600 mb-3 leading-relaxed">
+                                住在品川王子<strong>千萬不要去搭 Skyliner</strong>（還要拖著吸頂燈與戰利品去上野/日暮里轉車）。請直接在飯店對面的品川站搭乘 <strong>JR 成田特快 N'EX (Narita Express)</strong>，全車對號座、有大型行李鎖架，一班車直達成田機場第2航廈（虎航櫃檯）！
+                            </p>
+                            <div class="bg-white rounded-xl p-3.5 border border-rose-200 space-y-2 text-xs">
+                                <div class="font-bold text-rose-900 border-b border-slate-100 pb-1.5">🕒 針對 11:00 多虎航班機（目標 08:30~08:55 到機場）：</div>
+                                <div class="flex justify-between items-center py-1.5 bg-rose-100/70 px-2.5 rounded-lg border border-rose-300">
+                                    <div>
+                                        <span class="font-black text-rose-950 block">👑 首選：N'EX 4號｜07:08 品川站發車</span>
+                                        <span class="text-[11px] text-rose-800">06:45 從飯店退房過馬路進站剛剛好</span>
+                                    </div>
+                                    <span class="text-rose-950 font-black text-right">➔ 08:16 抵達成田 T2<br><span class="text-[10px] font-normal">(提前約3小時，最穩妥)</span></span>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 bg-amber-50 px-2.5 rounded-lg border border-amber-200">
+                                    <div>
+                                        <span class="font-bold text-amber-950 block">👍 次選：N'EX 6號｜07:42 品川站發車</span>
+                                        <span class="text-[11px] text-amber-800">適合想多睡半小時</span>
+                                    </div>
+                                    <span class="text-amber-950 font-bold text-right">➔ 08:53 抵達成田 T2<br><span class="text-[10px] font-normal">(剛好提前 2.5 小時)</span></span>
+                                </div>
+                                <p class="text-[11px] text-slate-500 pt-1">
+                                    💡 預訂方式：可於乘車前1個月在「JR-EAST Train Reservation」官網預訂，或抵達日本第一天在品川站 JR 綠色售票機先劃好 12/6 早上的指定席。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3: Nikko Toshogu Express Guide -->
+                    <div class="rounded-2xl border-2 border-amber-200 bg-amber-50/50 p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-amber-600 text-white text-xs font-bold px-3 py-1 rounded-full">Day 4｜12/2 (三) 日光一日遊</span>
+                            <span class="text-xs font-bold text-amber-900 bg-amber-200/70 px-2.5 py-1 rounded-lg">🔥 乘車前1個月務必搶訂特急券</span>
+                        </div>
+                        <h3 class="text-lg font-black text-slate-900 mb-2">⛩️ 日光東照宮：東武特急 vs JR新幹線 怎麼選？</h3>
+                        <p class="text-xs text-slate-600 mb-3 leading-relaxed">
+                            因為您當天晚上要逛<strong>「淺草到晴空塔竹燈祭＋晴空塔聖誕市集」</strong>，強烈推薦選擇<strong>方案 A（東武鐵道）</strong>，因為東武特急的起終點就在「淺草／晴空塔」，回程下車直接開逛！
+                        </p>
+                        <div class="space-y-2.5 text-xs">
+                            <div class="bg-white p-3 rounded-xl border border-amber-300">
+                                <div class="font-black text-amber-900 mb-1">🅰️ 最推薦：東武鐵道「淺草 / 晴空塔 ⇄ 東武日光」</div>
+                                <ul class="list-disc pl-4 space-y-1 text-slate-700">
+                                    <li><strong>去程轉乘：</strong>品川搭「都營淺草線（京急直通）」約 28 分鐘免換車直達「淺草站」或「押上（晴空塔）站」。</li>
+                                    <li><strong>需買票券（2張缺一不可）：</strong>
+                                        <br>1️⃣ <strong>基本車資＋巴士：</strong>買「NIKKO PASS world heritage area（日光世界遺產區域周遊券，大人 2,120 日圓）」，包辦淺草來回電車基本費＋東照宮巴士無限搭。
+                                        <br>2️⃣ <strong>特急指定席券（關鍵！）：</strong>加購 <strong>Spacia X</strong>（07:50 淺草發 → 09:39 到日光）或 <strong>Revaty Kegon</strong> 特急券。Spacia X 非常搶手，請在 <strong>11/2 早上 08:00 (台灣時間)</strong> 上東武官網搶票！
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="bg-white/70 p-3 rounded-xl border border-slate-200">
+                                <div class="font-bold text-slate-800 mb-1">🅱️ 備案：若東武特急沒搶到 ➔ 改搭 JR 東北新幹線</div>
+                                <p class="text-slate-600">從品川搭山手線至「東京站」，搭乘<strong>東北新幹線（Yamabiko / Nasuno）</strong>約 50 分鐘至「宇都宮站」，同站轉乘「JR 日光線」（約 45 分鐘）抵達 JR 日光站。優點是新幹線班次極多、隨時買都有位子！</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 4: Mt. Takao Keio Guide -->
+                    <div class="rounded-2xl border-2 border-emerald-200 bg-emerald-50/50 p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full">Day 2｜11/30 (一) 高尾山＋八王子</span>
+                            <span class="text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-lg">當日新宿站購票即可</span>
+                        </div>
+                        <h3 class="text-lg font-black text-slate-900 mb-2">🍁 高尾山賞楓 ＆ 八王子銀杏 順路轉乘攻略</h3>
+                        <p class="text-xs text-slate-600 mb-3 leading-relaxed">
+                            高尾山、八王子甲州街道銀杏、與新宿（Alpen TOKYO / Bic Camera）全部都在同一條路線上！
+                        </p>
+                        <div class="bg-white p-3.5 rounded-xl border border-emerald-200 space-y-2 text-xs text-slate-700">
+                            <div>
+                                <span class="font-black text-emerald-900">1. 去程（品川 ➔ 新宿 ➔ 高尾山口）：</span>
+                                <p class="mt-0.5">品川搭 JR 山手線至「新宿站」（約19分），轉乘<strong>京王線（Keio Line）特急</strong>（約50分，免加特急費）直達「高尾山口站」。</p>
+                            </div>
+                            <div>
+                                <span class="font-black text-emerald-900">2. 是否需要買套票或特快？</span>
+                                <p class="mt-0.5">可在京王線新宿站自動售票機買<strong>「高尾山きっぷ（高尾山折扣套票）」</strong>（含京王線來回車票8折＋高尾山纜車/吊椅來回8折）。若想保證有座位，可加價 400 日圓搭乘全車指定席的「Mt. TAKAO 號 / 京王 Liner」。</p>
+                            </div>
+                            <div>
+                                <span class="font-black text-emerald-900">3. 下午順遊「八王子銀杏」再回新宿採買：</span>
+                                <p class="mt-0.5">從高尾山口站搭 1 站到「高尾站」，轉 JR 中央線僅 3 分鐘即達「西八王子站」（出站往北走就是 4 公里長的甲州街道銀杏大道！），看完直接從八王子搭 JR 中央線特快直達「新宿站」逛 Alpen TOKYO 買慢跑鞋！</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: CHRISTMAS MARKETS, BAMBOO LIGHTS & ARTE TOKYO ==================== -->
+        <section id="view-illumination" class="hidden space-y-6">
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5 border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                            2026 夜間燈飾、11大聖誕市集、竹燈祭 & ARTE TOKYO 收斂總表
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">
+                            已將您提供的雜亂資訊依照「地理分區」與「展期有效性」完美分配至各天晚上，點擊「定位」可查看位置。
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Special Highlight Boxes: Pokemon Yokohama, Harry Potter Marunouchi, Asakusa Bamboo, ARTE TOKYO -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <!-- Highlight 1: Yokohama Pokemon -->
+                    <div class="bg-gradient-to-br from-amber-50 to-yellow-100/70 border-2 border-amber-300 rounded-2xl p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-amber-500 text-slate-950 font-black text-[11px] px-2.5 py-0.5 rounded-full">⚡ 必去重頭戲｜已排 Day 5</span>
+                            <span class="text-[11px] font-bold text-amber-800">11/20 - 12/25</span>
+                        </div>
+                        <h3 class="font-black text-slate-900 text-sm mb-1">🎄 橫濱紅磚倉庫 ✕ 寶可夢聖誕活動</h3>
+                        <p class="text-xs text-slate-700 leading-relaxed">
+                            2026 寶可夢 30 週年特別企劃<strong>「えらぶ！ポケモンイルミネーション1025」</strong>就在紅磚倉庫聖誕市集旁的免費區域（Christmas Village）！可同時逛德國風紅磚聖誕市集＋拍發光寶可夢聖誕樹與燈飾。
+                        </p>
+                    </div>
+
+                    <!-- Highlight 2: Marunouchi Harry Potter -->
+                    <div class="bg-gradient-to-br from-indigo-50 to-purple-100/60 border-2 border-indigo-200 rounded-2xl p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-indigo-600 text-white font-bold text-[11px] px-2.5 py-0.5 rounded-full">🪄 魔法聯名｜已排 Day 1</span>
+                            <span class="text-[11px] font-bold text-indigo-800">11/12 - 2027/2/14</span>
+                        </div>
+                        <h3 class="font-black text-slate-900 text-sm mb-1">🧙‍♂️ 丸之內《哈利波特》魔法聖誕</h3>
+                        <ul class="text-xs text-slate-700 space-y-0.5 leading-relaxed">
+                            <li>❄️ <strong>亮點1：</strong>丸之內大廈主題聖誕樹＋魔法雪燈光音樂秀</li>
+                            <li>✨ <strong>亮點2：</strong>大手町・丸之內・有樂町街區裝飾</li>
+                            <li>🎁 <strong>亮點3：</strong>限定商品與哈利波特主題快閃店</li>
+                            <li>🌟 <strong>亮點4：</strong>1.2km 丸之內仲通香檳金燈飾</li>
+                        </ul>
+                    </div>
+
+                    <!-- Highlight 3: Asakusa Skytree Bamboo -->
+                    <div class="bg-gradient-to-br from-teal-50 to-emerald-100/60 border-2 border-teal-200 rounded-2xl p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-teal-600 text-white font-bold text-[11px] px-2.5 py-0.5 rounded-full">🎋 夢幻夜遊｜已排 Day 4</span>
+                            <span class="text-[11px] font-bold text-teal-800">11/7 - 1/31 (17-22點)</span>
+                        </div>
+                        <h3 class="font-black text-slate-900 text-sm mb-1">✨ 第5屆 淺草～晴空塔冬季竹燈祭</h3>
+                        <p class="text-xs text-slate-700 leading-relaxed">
+                            <strong>免費參觀！</strong>今年新增「北十間川水面燈光秀」，竹燈倒影超夢幻。串聯隅田公園、隅田川步行橋、牛島神社一路走到晴空塔聖誕市集（記得用晴空塔遊客專屬免稅優惠券）。
+                        </p>
+                    </div>
+
+                    <!-- Highlight 4: ARTE TOKYO -->
+                    <div class="bg-gradient-to-br from-rose-50 to-orange-100/60 border-2 border-rose-200 rounded-2xl p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="bg-rose-600 text-white font-bold text-[11px] px-2.5 py-0.5 rounded-full">🎨 城市藝術祭｜Day 1 & 6</span>
+                            <span class="text-[11px] font-bold text-rose-800">10/10 - 12/31</span>
+                        </div>
+                        <h3 class="font-black text-slate-900 text-sm mb-1">🎭 ARTE TOKYO 東京國際文化藝術祭</h3>
+                        <p class="text-xs text-slate-700 leading-relaxed">
+                            11月後戶外作品全數完成！三大核心區已幫您順路嵌入行程：<br>
+                            • <strong>日比谷・丸之內區：</strong>排在 Day 1 下午～晚上<br>
+                            • <strong>代代木・澀谷區：</strong>排在 Day 6 下午<br>
+                            • <strong>臨海（豐州/台場）區：</strong>列於備選庫可彈性替換
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 11 Christmas Markets Complete Status Table -->
+                <h3 class="font-black text-base text-slate-800 mb-3">🎄 您清單中的 11 個聖誕市集歸納與排程狀態表</h3>
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-left border-collapse text-xs md:text-sm">
+                        <thead>
+                            <tr class="bg-slate-900 text-white">
+                                <th class="p-3 font-bold">聖誕市集名稱</th>
+                                <th class="p-3 font-bold">活動日期</th>
+                                <th class="p-3 font-bold">地理分區 / 最近車站</th>
+                                <th class="p-3 font-bold">排入行程狀態</th>
+                                <th class="p-3 font-bold">順路搭配邏輯</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">🎄 丸之內哈利波特聖誕市集</td>
+                                <td class="p-3">11/12 - 12/25</td>
+                                <td class="p-3">東京站 / 丸之內大廈・OAZO</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 1 (11/29 晚)</span></td>
+                                <td class="p-3 text-slate-600">白天拍八重洲寶可夢雕像＋下午皇居日比谷銀杏，晚上原地逛最省力</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">🎄 惠比壽花園聖誕市集</td>
+                                <td class="p-3">11/27 - 12/25</td>
+                                <td class="p-3">JR 惠比壽站 (山手線)</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 2 (11/30 晚)</span></td>
+                                <td class="p-3 text-slate-600">從高尾山回新宿採買後，搭山手線回品川途中剛好在惠比壽下車看水晶燈</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">🎄 上野公園聖誕市集</td>
+                                <td class="p-3">11/6 - 12/25</td>
+                                <td class="p-3">JR 上野站 / 上野恩賜公園</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 3 (12/1 下午)</span></td>
+                                <td class="p-3 text-slate-600">白天逛東大銀杏，下午走去上野公園賞楓兼逛市集，晚上去六義園夜楓</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">🎄 晴空塔聖誕市集 (＋竹燈祭)</td>
+                                <td class="p-3">11/5 - 12/25</td>
+                                <td class="p-3">押上站 / 東京晴空塔站</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 4 (12/2 晚)</span></td>
+                                <td class="p-3 text-slate-600">日光東照宮搭東武特急回程終點就在晴空塔與淺草！無縫接軌竹燈祭</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50 bg-amber-50/40">
+                                <td class="p-3 font-black text-amber-900">🎄 橫濱紅磚倉庫聖誕市集＋寶可夢</td>
+                                <td class="p-3">11/20 - 12/25</td>
+                                <td class="p-3">橫濱港未來 / 馬車道站</td>
+                                <td class="p-3"><span class="bg-amber-200 text-amber-950 font-black px-2.5 py-1 rounded-full">⭐ Day 5 (12/3 晚) 必去</span></td>
+                                <td class="p-3 text-slate-700 font-medium">品川搭京急線22分直達橫濱，一次收齊紅磚市集與寶可夢30週年聖誕燈飾</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">🎄 吉伊卡哇聖誕市集 / 主題店</td>
+                                <td class="p-3">11/24 - 12/25</td>
+                                <td class="p-3">原宿 / 表參道 / 東京站</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 6 (12/4 下午)</span></td>
+                                <td class="p-3 text-slate-600">搭配神宮外苑銀杏與代代木公園，下午在表參道/原宿逛吉伊卡哇與 ARTE</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">🎄 六本木聖誕市集 (＋櫸坂通)</td>
+                                <td class="p-3">11/21 - 12/25</td>
+                                <td class="p-3">港區・六本木站</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 6 (12/4 晚)</span></td>
+                                <td class="p-3 text-slate-600">與麻布台之丘、芝公園同屬港區，排在同一晚連逛，回品川超近</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">🎄 麻布台之丘聖誕市集</td>
+                                <td class="p-3">11/21 - 12/25</td>
+                                <td class="p-3">港區・神谷町站 / 六本木步行</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 6 (12/4 晚)</span></td>
+                                <td class="p-3 text-slate-600">從六本木之丘步行約 10 分鐘即可抵達麻布台之丘中央廣場</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">🎄 芝公園東京聖誕市集</td>
+                                <td class="p-3">12/4 - 12/25</td>
+                                <td class="p-3">港區・御成門站 (東京鐵塔下)</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 6 (12/4 開幕首日)</span></td>
+                                <td class="p-3 text-slate-600">12/4 剛好開幕第一天！就在麻布台之丘東側，仰望東京鐵塔逛市集</td>
+                            </tr>
+                            <tr class="hover:bg-slate-50">
+                                <td class="p-3 font-bold text-slate-900">🎄 新豐州東京聖誕市集</td>
+                                <td class="p-3">11/20 - 12/25</td>
+                                <td class="p-3">江東區・新豐州站 / 臨海區</td>
+                                <td class="p-3"><span class="bg-indigo-100 text-indigo-800 font-bold px-2.5 py-1 rounded-full">📦 收錄於備選庫 (可隨時加入)</span></td>
+                                <td class="p-3 text-slate-600">可搭配 ARTE TOKYO 臨海展區，隨時從「備選景點庫」一鍵替換任一晚</td>
+                            </tr>
+                            <tr class="bg-slate-100 text-slate-400">
+                                <td class="p-3 font-bold line-through">🎄 目黑街角聖誕市集</td>
+                                <td class="p-3 font-bold text-rose-500">12/11 - 12/13</td>
+                                <td class="p-3">目黑站</td>
+                                <td class="p-3"><span class="bg-slate-200 text-slate-600 font-bold px-2.5 py-1 rounded-full">❌ 旅期外 (您 12/6 已返台)</span></td>
+                                <td class="p-3">自動幫您過濾剔除，避免白跑一趟！</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: FOLIAGE TABLE & SHOPPING GUIDE ==================== -->
+        <section id="view-foliage" class="hidden space-y-6">
+            <!-- Shopping Guide: Alpen TOKYO & Bic Camera Ceiling Light -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <h2 class="text-xl font-black text-slate-900 flex items-center gap-2 mb-4">
+                    <i class="fa-solid fa-bag-shopping text-rose-500"></i>
+                    專程採買攻略：Alpen TOKYO 慢跑鞋 ＆ Bic Camera 吸頂燈／電器
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="bg-indigo-50/60 border border-indigo-200 rounded-2xl p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="bg-indigo-600 text-white text-xs font-bold px-3 py-1 rounded-full">👟 慢跑鞋聖地</span>
+                            <span class="text-xs font-bold text-indigo-900">新宿東口步行 1 分鐘</span>
+                        </div>
+                        <h3 class="text-base font-black text-slate-900 mb-2">Alpen TOKYO（アルペントーキョー 新宿旗艦店）</h3>
+                        <ul class="text-xs text-slate-700 space-y-1.5 leading-relaxed">
+                            <li>📍 <strong>樓層重點：</strong>直接前往 <strong>1F（跑步專區 Running）</strong>！這裡有全東京最齊全的 Asics、Mizuno、New Balance、On、Hoka、Nike 厚底跑鞋與新國立競技場同材質試跑道。</li>
+                            <li>🦶 <strong>免費足型測量：</strong>1樓設有 3D 足型測量儀，店員可協助挑選適合寬楦或足弓的慢跑鞋。</li>
+                            <li>💰 <strong>免稅＋折扣：</strong>滿 5,000 日圓可退稅 10%，結帳出示護照有時還可享外國旅客 5% 優惠券。</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-rose-50/60 border border-rose-200 rounded-2xl p-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="bg-rose-600 text-white text-xs font-bold px-3 py-1 rounded-full">💡 吸頂燈 & 電器採買</span>
+                            <span class="text-xs font-bold text-rose-900">新宿東口 Bicqlo 或 有樂町店</span>
+                        </div>
+                        <h3 class="text-base font-black text-slate-900 mb-2">Bic Camera 買「吸頂燈」超重要實戰提醒</h3>
+                        <ul class="text-xs text-slate-700 space-y-1.5 leading-relaxed">
+                            <li>📍 <strong>分店順路度：</strong>在新宿逛完 Alpen TOKYO 後，隔壁就是「Bic Camera 新宿東口店」；或者您也可以在離品川僅 8 分鐘車程的「Bic Camera 有樂町店」購買。</li>
+                            <li>📦 <strong>吸頂燈尺寸與虎航託運注意：</strong>LED 吸頂燈外箱通常是扁平大正方形（約 55×55×15cm，重約 2~3kg）。<strong>請務必請店員幫外箱捆上塑膠繩提把（手提げ紐）並貼易碎標籤</strong>，虎航計件/計重託運時可直接作為一件託運行李掛運（注意虎航單件三邊總和上限 203cm，一般 8~14 疊吸頂燈皆符合）。</li>
+                            <li>🎟️ <strong>必備優惠券：</strong>結帳記得用「10% 免稅 + 7% 電器優惠券」（共約 83 折）！</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Foliage Table from Attachment + Requested Spots -->
+            <div class="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <h2 class="text-xl font-black text-slate-900 flex items-center gap-2 mb-2">
+                    <i class="fa-solid fa-leaf text-amber-500"></i>
+                    東京銀杏與楓紅名所總整理（含您提供的附圖表格＋東大／六義園／高尾山／日光）
+                </h2>
+                <p class="text-xs text-slate-500 mb-4">
+                    已將您附圖中的所有銀杏名所與指定景點全數建檔，並標註排程狀態：
+                </p>
+                <div class="overflow-x-auto rounded-xl border border-slate-200">
+                    <table class="w-full text-left border-collapse text-xs md:text-sm">
+                        <thead>
+                            <tr class="bg-amber-900 text-white">
+                                <th class="p-3 font-bold">景點名稱</th>
+                                <th class="p-3 font-bold">最佳觀賞期</th>
+                                <th class="p-3 font-bold">入場費</th>
+                                <th class="p-3 font-bold">最近車站</th>
+                                <th class="p-3 font-bold">特色亮點</th>
+                                <th class="p-3 font-bold">排入行程狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-200 bg-white">
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍂 皇居周邊（行幸通）</td>
+                                <td class="p-3">11月下旬～12月上旬</td>
+                                <td class="p-3">免費</td>
+                                <td class="p-3">東京站</td>
+                                <td class="p-3 text-slate-600">紅磚車站建築與銀杏交織的經典景色</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 1 下午</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍂 日比谷公園</td>
+                                <td class="p-3">11月下旬～12月上旬</td>
+                                <td class="p-3">免費</td>
+                                <td class="p-3">日比谷站 (東京站步行可達)</td>
+                                <td class="p-3 text-slate-600">樹齡超過400年的「首掛銀杏」與雲形池紅葉</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 1 下午</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍁 高尾山</td>
+                                <td class="p-3">11月中旬～12月上旬</td>
+                                <td class="p-3">免費 (纜車另計)</td>
+                                <td class="p-3">高尾山口站 (京王線)</td>
+                                <td class="p-3 text-slate-600">米其林三星紅葉名山，搭纜車穿梭漫山楓紅</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 2 白天</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍂 八王子甲州街道</td>
+                                <td class="p-3">11月中旬～11月下旬</td>
+                                <td class="p-3">免費</td>
+                                <td class="p-3">西八王子站 / 高尾站</td>
+                                <td class="p-3 text-slate-600">全長4公里的壯觀約770棵銀杏林蔭大道</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 2 下午</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍂 東京大學（本鄉校區）</td>
+                                <td class="p-3">11月下旬～12月上旬</td>
+                                <td class="p-3">免費</td>
+                                <td class="p-3">本鄉三丁目站 / 東大前站</td>
+                                <td class="p-3 text-slate-600">赤門、正門至安田講堂的金黃銀杏隧道與百年大銀杏</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 3 白天</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍁 上野恩賜公園</td>
+                                <td class="p-3">11月下旬～12月上旬</td>
+                                <td class="p-3">免費</td>
+                                <td class="p-3">上野站</td>
+                                <td class="p-3 text-slate-600">噴水池廣場周邊銀杏與紅葉交織，順逛上野聖誕市集</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 3 下午</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍁 六義園（夜楓）</td>
+                                <td class="p-3">11月下旬～12月上旬</td>
+                                <td class="p-3">300日圓 (夜間另計)</td>
+                                <td class="p-3">駒込站 (山手線)</td>
+                                <td class="p-3 text-slate-600">江戶時代迴遊式庭園，秋季限定夜間楓紅點燈倒影</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 3 晚上</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍂 明治神宮外苑</td>
+                                <td class="p-3">11月下旬～12月上旬</td>
+                                <td class="p-3">免費</td>
+                                <td class="p-3">外苑前站 / 青山一丁目站</td>
+                                <td class="p-3 text-slate-600">東京最經典300公尺金黃銀杏隧道</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 6 白天</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍂 代代木公園</td>
+                                <td class="p-3">11月下旬～12月上旬</td>
+                                <td class="p-3">免費</td>
+                                <td class="p-3">原宿站 / 代代木公園站</td>
+                                <td class="p-3 text-slate-600">最適合散步野餐的綠色綠洲，滿滿銀杏地毯與紅葉</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 6 下午</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍂 靖國神社</td>
+                                <td class="p-3">11月下旬～12月上旬</td>
+                                <td class="p-3">免費</td>
+                                <td class="p-3">九段下站 (東京巨蛋旁)</td>
+                                <td class="p-3 text-slate-600">大鳥居參道兩側高聳入雲的銀杏並木，離東京巨蛋步行12分</td>
+                                <td class="p-3"><span class="bg-emerald-100 text-emerald-800 font-bold px-2.5 py-1 rounded-full">✅ Day 7 下午 (演唱會前)</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍂 國營昭和紀念公園</td>
+                                <td class="p-3">11月中旬～11月下旬</td>
+                                <td class="p-3">450日圓</td>
+                                <td class="p-3">西立川站</td>
+                                <td class="p-3 text-slate-600">兩處壯觀的銀杏林蔭大道</td>
+                                <td class="p-3"><span class="bg-indigo-100 text-indigo-800 font-bold px-2.5 py-1 rounded-full">📦 備選庫 (可一鍵替換)</span></td>
+                            </tr>
+                            <tr class="hover:bg-amber-50/40">
+                                <td class="p-3 font-bold text-slate-900">🍂 駒澤奧林匹克公園</td>
+                                <td class="p-3">11月下旬～12月上旬</td>
+                                <td class="p-3">免費</td>
+                                <td class="p-3">駒澤大學站</td>
+                                <td class="p-3 text-slate-600">享受運動與紅葉銀杏之美</td>
+                                <td class="p-3"><span class="bg-indigo-100 text-indigo-800 font-bold px-2.5 py-1 rounded-full">📦 備選庫 (可一鍵替換)</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== MODAL 1: MOVE / SWAP SLOT MODAL ==================== -->
+    <div id="move-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-slate-200">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <h3 class="font-black text-base text-slate-900">
+                    <i class="fa-solid fa-right-left text-amber-500 mr-1.5"></i>調整行程時段（與目標時段互換）
+                </h3>
+                <button onclick="closeMoveModal()" class="text-slate-400 hover:text-slate-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <div class="mb-4">
+                <p class="text-xs text-slate-500 mb-1">目前選擇的行程：</p>
+                <div id="move-source-title" class="font-bold text-sm text-amber-900 bg-amber-50 border border-amber-200 p-2.5 rounded-xl"></div>
+            </div>
+            <div class="space-y-3 mb-5">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">選擇目標日期：</label>
+                    <select id="move-target-day" class="w-full rounded-xl border border-slate-300 p-2.5 text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">選擇目標時段：</label>
+                    <select id="move-target-slot" class="w-full rounded-xl border border-slate-300 p-2.5 text-sm font-medium focus:ring-2 focus:ring-amber-500 outline-none">
+                        <option value="morning">☀️ 白天 (Morning)</option>
+                        <option value="afternoon">🌤️ 下午 (Afternoon)</option>
+                        <option value="evening">🌙 晚上 (Evening)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                <button onclick="moveSlotToPool()" class="text-xs font-bold text-rose-600 hover:bg-rose-50 px-3 py-2 rounded-xl transition">
+                    <i class="fa-solid fa-box-archive mr-1"></i>移回備選庫
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="closeMoveModal()" class="text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-xl transition">取消</button>
+                    <button onclick="confirmMoveSlot()" class="text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded-xl shadow transition">確認對調 / 移動</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL 2: BACKUP POOL & CUSTOM ADD MODAL ==================== -->
+    <div id="pool-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full p-5 shadow-2xl border border-slate-200 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <div>
+                    <h3 class="font-black text-base text-slate-900">
+                        <i class="fa-solid fa-layer-group text-indigo-600 mr-1.5"></i>備選景點庫 & 新增自訂行程
+                    </h3>
+                    <p class="text-xs text-slate-500 mt-0.5">可將備選景點（如新豐州聖誕市集、昭和紀念公園等）一鍵排入任何一天的早/午/晚</p>
+                </div>
+                <button onclick="closePoolModal()" class="text-slate-400 hover:text-slate-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Target Day & Slot Selector for Adding -->
+            <div class="bg-indigo-50 p-3 rounded-xl border border-indigo-200 mb-4 flex flex-wrap items-center gap-2 text-xs">
+                <span class="font-bold text-indigo-950">指派至目標時段：</span>
+                <select id="pool-target-day" class="rounded-lg border border-indigo-300 px-2.5 py-1.5 bg-white font-bold text-slate-800"></select>
+                <select id="pool-target-slot" class="rounded-lg border border-indigo-300 px-2.5 py-1.5 bg-white font-bold text-slate-800">
+                    <option value="morning">☀️ 白天</option>
+                    <option value="afternoon">🌤️ 下午</option>
+                    <option value="evening">🌙 晚上</option>
+                </select>
+                <span class="text-[11px] text-indigo-700">（若該時段已有行程，原行程會自動退回備選庫）</span>
+            </div>
+
+            <!-- Pool Items List -->
+            <div id="pool-items-container" class="flex-1 overflow-y-auto space-y-2.5 pr-1 mb-4">
+                <!-- Generated by JS -->
+            </div>
+
+            <!-- Custom Item Creator -->
+            <div class="border-t border-slate-200 pt-3">
+                <div class="text-xs font-bold text-slate-700 mb-2">➕ 或手動新增自訂行程カード：</div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <input id="custom-spot-title" type="text" placeholder="行程名稱 (例：銀座咖啡廳)" class="rounded-xl border border-slate-300 px-3 py-2 text-xs outline-none focus:border-indigo-500">
+                    <input id="custom-spot-area" type="text" placeholder="地點/車站 (例：銀座站)" class="rounded-xl border border-slate-300 px-3 py-2 text-xs outline-none focus:border-indigo-500">
+                    <button onclick="addCustomSpotToSchedule()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl px-4 py-2 transition">
+                        直接加入上方指定時段
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast-box" class="fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-xl z-50 hidden items-center gap-2 border border-slate-700">
+        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-text">已更新行程！</span>
+    </div>
+
+    <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+    <script>
+        // Base Hotel Coordinate: Shinagawa Prince Hotel
+        const HOTEL_BASE = {
+            name: "品川王子大飯店 (Shinagawa Prince Hotel)",
+            address: "4 Chome-10-30 Takanawa, Minato City, Tokyo 108-8611",
+            lat: 35.627534,
+            lng: 139.736621
+        };
+
+        // Default Optimal 8-Day Itinerary Data (Tailored to all user requirements)
+        const DEFAULT_DAYS = [
+            {
+                dayId: "D1",
+                dateStr: "11/29 (日)",
+                theme: "八重洲寶可夢壓軸・皇居日比谷銀杏・丸之內哈利波特",
+                zoneBadge: "東京車站・丸之內・日比谷圈",
+                transitSummary: "06:10 羽田搭「京急線」約18分直達品川寄放行李 ➔ 品川搭「JR山手線」10分直達東京站（全天集中於東京站東西兩側，轉乘最少）",
+                slots: {
+                    morning: {
+                        id: "s-d1-m",
+                        title: "⚡ 羽田早班車 ➔ 東京站八重洲「傳說寶可夢雕像」壓軸拍照",
+                        area: "東京站八重洲口・日本橋",
+                        station: "JR 東京站（八重洲口）/ 日本橋站",
+                        category: "寶可夢・必去",
+                        badgeColor: "bg-amber-500 text-slate-950",
+                        lat: 35.6805,
+                        lng: 139.7705,
+                        transitTip: "羽田T3搭京急線 06:02/06:09/06:16 班次 ➔ 06:30抵品川王子寄行李 ➔ 搭山手線10分至東京站",
+                        desc: "【11/29 展期最後一天！】半天時間走訪八重洲與日本橋一帶的傳說寶可夢雕像打卡，10:30 順逛日本橋高島屋 S.C. 東館 5F「寶可夢中心東京 DX」。"
+                    },
+                    afternoon: {
+                        id: "s-d1-a",
+                        title: "🍂 皇居（行幸通）銀杏大道 ＆ 日比谷公園400年首掛銀杏 ＋ ARTE TOKYO",
+                        area: "丸之內・日比谷",
+                        station: "東京站丸之內口 / 日比谷站",
+                        category: "銀杏名所・藝術祭",
+                        badgeColor: "bg-amber-600 text-white",
+                        lat: 35.6738,
+                        lng: 139.7563,
+                        transitTip: "從八重洲穿過東京站自由通路至丸之內口，往南散步10分鐘即達日比谷公園",
+                        desc: "欣賞紅磚東京車站與行幸通金黃銀杏交織美景；接著步行至日比谷公園看樹齡400年「首掛銀杏」，順遊「ARTE TOKYO（日比谷・丸之內核心區）」戶外裝置藝術。"
+                    },
+                    evening: {
+                        id: "s-d1-e",
+                        title: "🎄 丸之內《哈利波特》魔法聖誕市集 ＆ 1.2km 香檳金燈飾",
+                        area: "丸之內仲通・丸之內大廈",
+                        station: "JR 東京站（搭山手線10分回品川）",
+                        category: "聖誕市集・燈飾",
+                        badgeColor: "bg-indigo-600 text-white",
+                        lat: 35.6812,
+                        lng: 139.7649,
+                        transitTip: "日比谷沿丸之內仲通散步回東京站，結束搭山手線 10 分鐘回品川王子休息",
+                        desc: "四大亮點一次收：1.丸之內大廈哈利波特主題聖誕樹與魔法雪燈光音樂秀 2.街區魔法裝飾 3.限定快閃店 4.長達1.2公里的丸之內仲通香檳金燈海！"
+                    }
+                }
+            },
+            {
+                dayId: "D2",
+                dateStr: "11/30 (一)",
+                theme: "高尾山楓紅・八王子4km銀杏・新宿慢跑鞋與吸頂燈採買",
+                zoneBadge: "京王線西郊 ➔ 新宿 ➔ 惠比壽",
+                transitSummary: "品川搭山手線至新宿，轉「京王線特急」50分直達高尾山口；回程順停八王子銀杏、新宿集中採買、惠比壽看聖誕燈，完美一直線不走回頭路！",
+                slots: {
+                    morning: {
+                        id: "s-d2-m",
+                        title: "🍁 高尾山賞楓半日遊（搭纜車/吊椅穿梭楓紅隧道）",
+                        area: "高尾山國定公園",
+                        station: "京王線 高尾山口站",
+                        category: "近郊賞楓",
+                        badgeColor: "bg-red-600 text-white",
+                        lat: 35.6251,
+                        lng: 139.2437,
+                        transitTip: "新宿站買「高尾山折扣套票（含來回車票+纜車8折）」，搭京王線特急約50分直達",
+                        desc: "避開週末人潮！週一早上搭纜車或吊椅至半山腰，走1號步道參拜藥王院、登頂眺望富士山，欣賞11月底最艷麗的楓紅。"
+                    },
+                    afternoon: {
+                        id: "s-d2-a",
+                        title: "🍂 八王子甲州街道銀杏 ➔ 🛍️ 新宿半日採買（Alpen慢跑鞋 & Bic Camera吸頂燈）",
+                        area: "西八王子 ➔ 新宿東口",
+                        station: "西八王子站 ➔ JR 新宿站",
+                        category: "銀杏 ＋ 專程採買",
+                        badgeColor: "bg-rose-600 text-white",
+                        lat: 35.6916,
+                        lng: 139.7016,
+                        transitTip: "高尾山搭至西八王子看銀杏 ➔ 搭JR中央線特快直達新宿東口",
+                        desc: "先看八王子甲州街道4公里銀杏大道；隨後回新宿東口展開半日採買：①【Alpen TOKYO】1F跑鞋專區測足型買慢跑鞋 ②【Bic Camera 新宿東口店】買吸頂燈與電器（可請店員打包加提把，或先買小電器、吸頂燈留到回品川前買）。"
+                    },
+                    evening: {
+                        id: "s-d2-e",
+                        title: "🎄 惠比壽花園廣場聖誕市集（Baccarat 巨型水晶吊燈）",
+                        area: "惠比壽",
+                        station: "JR 惠比壽站（距品川僅 2 站）",
+                        category: "聖誕市集・燈飾",
+                        badgeColor: "bg-indigo-600 text-white",
+                        lat: 35.6422,
+                        lng: 139.7132,
+                        transitTip: "從新宿搭 JR 山手線往品川方向，中途在「惠比壽站」下車；看完再搭9分鐘即回品川飯店放戰利品",
+                        desc: "11/27-12/25 限定！欣賞世界最大級 Baccarat 巴卡拉水晶吊燈、10公尺聖誕樹與歐風廣場聖誕市集。"
+                    }
+                }
+            },
+            {
+                dayId: "D3",
+                dateStr: "12/1 (二)",
+                theme: "東京大學銀杏隧道・上野恩賜公園・六義園絕美夜楓",
+                zoneBadge: "文京區・上野・駒込圈",
+                transitSummary: "品川站搭「JR上野東京Line」18分直達上野圈；東大、上野公園、六義園三點緊密相連，晚上從駒込搭山手線直達回品川。",
+                slots: {
+                    morning: {
+                        id: "s-d3-m",
+                        title: "🍂 東京大學（本鄉校區）金黃銀杏隧道 ＆ 百年大銀杏",
+                        area: "文京區・本鄉",
+                        station: "本鄉三丁目站 / 東大前站",
+                        category: "銀杏名所",
+                        badgeColor: "bg-amber-500 text-slate-950",
+                        lat: 35.7127,
+                        lng: 139.7620,
+                        transitTip: "品川搭JR至東京/御茶之水轉丸之內線至本鄉三丁目站，步行6分鐘",
+                        desc: "免費參觀！拍攝東大著名的赤門、正門通往安田講堂的金黃色銀杏並木大道，以及工學部前樹齡百年的巨大銀杏。"
+                    },
+                    afternoon: {
+                        id: "s-d3-a",
+                        title: "🍁 上野恩賜公園（楓紅與銀杏）＋ 🎄 上野公園聖誕市集",
+                        area: "台東區・上野",
+                        station: "JR 上野站",
+                        category: "銀杏楓葉・聖誕市集",
+                        badgeColor: "bg-emerald-600 text-white",
+                        lat: 35.7147,
+                        lng: 139.7732,
+                        transitTip: "從東京大學經不忍池散步約 15~18 分鐘（或搭都營巴士）即可直達上野恩賜公園",
+                        desc: "漫步上野公園噴水池廣場欣賞銀杏與紅葉，並順道逛「11/6-12/25 上野公園聖誕市集」品嚐熱紅酒與聖誕美食。"
+                    },
+                    evening: {
+                        id: "s-d3-e",
+                        title: "🍁 六義園 秋季限定夜間楓紅點燈（或小石川後樂園）",
+                        area: "文京區・駒込",
+                        station: "JR 駒込站（山手線）",
+                        category: "夜楓名所",
+                        badgeColor: "bg-red-700 text-white",
+                        lat: 35.7329,
+                        lng: 139.7464,
+                        transitTip: "從上野站搭 JR 山手線往北 4 站（約9分鐘）至「駒込站」步行2分鐘即達；結束搭山手線回品川",
+                        desc: "東京最頂級的江戶時代大名庭園夜楓！欣賞紅葉映照在巨大人工湖面上的夢幻倒影。"
+                    }
+                }
+            },
+            {
+                dayId: "D4",
+                dateStr: "12/2 (三)",
+                theme: "日光東照宮世界遺產一日遊 ＆ 淺草晴空塔冬季竹燈祭",
+                zoneBadge: "日光近郊 ➔ 淺草・晴空塔圈",
+                transitSummary: "品川搭都營淺草線直達淺草，轉乘「東武鐵道特急 Spacia X / Revaty」往返日光；回程終點就在晴空塔與淺草，完美銜接竹燈祭與晴空塔聖誕市集！",
+                slots: {
+                    morning: {
+                        id: "s-d4-m",
+                        title: "⛩️ 日光東照宮・二荒山神社・輪王寺・神橋 世界遺產巡禮",
+                        area: "栃木縣・日光市",
+                        station: "東武日光站 / JR日光站",
+                        category: "世界遺產・必預訂特急",
+                        badgeColor: "bg-amber-600 text-white",
+                        lat: 36.7581,
+                        lng: 139.5989,
+                        transitTip: "⚠️ 乘車前1個月(11/2)先上網訂東武特急 Spacia X (07:50淺草發→09:39到日光) + 日光世界遺產周遊券",
+                        desc: "搭乘東武世界遺產巡迴巴士直達東照宮，欣賞金碧輝煌的國寶「陽明門」、「三猿（非禮勿視聽言）」與「眠貓」雕刻，中午品嚐日光名物湯波（腐皮）料理。"
+                    },
+                    afternoon: {
+                        id: "s-d4-a",
+                        title: "🚊 搭東武特急返回東京 ➔ 淺草寺漫步 ＆ 晴空塔免稅購物",
+                        area: "淺草・押上（晴空塔）",
+                        station: "東京晴空塔站 / 淺草站",
+                        category: "順路回程・免稅優惠",
+                        badgeColor: "bg-teal-600 text-white",
+                        lat: 35.7100,
+                        lng: 139.8107,
+                        transitTip: "從東武日光搭下午14:30~15:30左右的東武特急，約1小時45分直接回到「東京晴空塔站」或「淺草站」",
+                        desc: "回程下車先逛晴空街道（Solamachi），記得結帳出示保存好的「遊客專屬優惠券」掃碼搭配免稅省更多！"
+                    },
+                    evening: {
+                        id: "s-d4-e",
+                        title: "🎋 淺草～晴空塔「第5屆限定竹燈祭」水面燈光秀 ＆ 🎄 晴空塔聖誕市集",
+                        area: "北十間川・隅田公園・晴空塔廣場",
+                        station: "押上站（搭京急直通車30分免換車回品川！）",
+                        category: "冬季竹燈・聖誕市集",
+                        badgeColor: "bg-indigo-600 text-white",
+                        lat: 35.7121,
+                        lng: 139.8038,
+                        transitTip: "晴空塔與淺草之間步行串聯；結束從「押上站」搭都營淺草線直通京急線，一班車直達品川站",
+                        desc: "【17:00-22:00 免費參觀】漫步隅田川步行橋、牛島神社、隅田公園，欣賞今年新增的「北十間川水面燈光秀」夢幻竹燈倒影，並逛晴空塔4F廣場德國聖誕市集！"
+                    }
+                }
+            },
+            {
+                dayId: "D5",
+                dateStr: "12/3 (四)",
+                theme: "橫濱港灣漫遊 ＆ 2026紅磚倉庫「寶可夢聖誕燈飾」必去",
+                zoneBadge: "橫濱港未來・紅磚倉庫圈",
+                transitSummary: "品川站搭「京急本線快特」或「JR東海道線」僅 20~22 分鐘一班車直達橫濱！比去東京北區還快！",
+                slots: {
+                    morning: {
+                        id: "s-d5-m",
+                        title: "⚡ 橫濱寶可夢中心（Marui City 8F）＆ 港未來寶可夢人孔蓋尋寶",
+                        area: "橫濱站・港未來21",
+                        station: "橫濱站 / 櫻木町站",
+                        category: "寶可夢巡禮",
+                        badgeColor: "bg-amber-500 text-slate-950",
+                        lat: 35.4658,
+                        lng: 139.6223,
+                        transitTip: "品川站搭京急線或JR東海道線 22 分鐘直達橫濱站，東口即達丸井百貨 8F",
+                        desc: "前往橫濱寶可夢中心（洛奇亞與皮卡丘航海主題），隨後到櫻木町站與港未來區拍攝橫濱限定的「皮卡丘寶可夢彩繪人孔蓋（Poké Lids）」。"
+                    },
+                    afternoon: {
+                        id: "s-d5-a",
+                        title: "🍂 山下公園銀杏大道 ＆ 橫濱空中纜車 (YOKOHAMA AIR CABIN)",
+                        area: "橫濱海岸通・山下公園",
+                        station: "日本大通站 / 櫻木町站",
+                        category: "海景銀杏・纜車",
+                        badgeColor: "bg-sky-600 text-white",
+                        lat: 35.4457,
+                        lng: 139.6496,
+                        transitTip: "從櫻木町搭乘橫濱空中纜車俯瞰港灣，散步至山下公園與日本大通看銀杏",
+                        desc: "日本大通與山下公園前也是絕美的海港銀杏大道！下午可在紅磚倉庫或海景咖啡館悠閒喝咖啡等待入夜點燈。"
+                    },
+                    evening: {
+                        id: "s-d5-e",
+                        title: "🎄 必去！2026 橫濱紅磚倉庫聖誕市集 ✕ 寶可夢30週年聖誕燈飾",
+                        area: "橫濱紅磚倉庫 (Akarenga)",
+                        station: "馬車道站 / 櫻木町站",
+                        category: "寶可夢聖誕・必去",
+                        badgeColor: "bg-rose-600 text-white",
+                        lat: 35.4526,
+                        lng: 139.6429,
+                        transitTip: "逛完從櫻木町/橫濱站搭京急線或JR東海道線，22分鐘直達回品川王子大飯店",
+                        desc: "【11/20-12/25】重頭戲！除了正統德國紅磚倉庫聖誕市集與10公尺巨型聖誕樹，今年免費區域 Christmas Village 特別舉辦寶可夢30週年「えらぶ！ポケモンイルミネーション1025」，滿滿寶可夢聖誕燈飾必拍！"
+                    }
+                }
+            },
+            {
+                dayId: "D6",
+                dateStr: "12/4 (五)",
+                theme: "神宮外苑・代代木銀杏・吉伊卡哇 ＆ 港區三大聖誕市集連發",
+                zoneBadge: "青山・原宿澀谷 ➔ 港區(六本木/麻布台/芝公園)",
+                transitSummary: "白天在山手線西側（外苑前・原宿），傍晚轉入港區（六本木・麻布台・芝公園），港區距離品川王子大飯店極近！",
+                slots: {
+                    morning: {
+                        id: "s-d6-m",
+                        title: "🍂 明治神宮外苑 經典300公尺金黃銀杏隧道",
+                        area: "青山・外苑前",
+                        station: "外苑前站 / 青山一丁目站",
+                        category: "銀杏名所",
+                        badgeColor: "bg-amber-500 text-slate-950",
+                        lat: 35.6732,
+                        lng: 139.7171,
+                        transitTip: "品川搭山手線至新橋或澀谷轉銀座線至「外苑前站」步行3分鐘",
+                        desc: "附圖首推！東京最具代表性的四排高聳銀杏並木，金黃隧道盡頭襯托著聖德紀念繪畫館，上午順光拍照最美。"
+                    },
+                    afternoon: {
+                        id: "s-d6-a",
+                        title: "🍂 代代木公園銀杏地毯 ＋ 🎄 吉伊卡哇聖誕市集 ＋ 🎨 ARTE TOKYO (代代木・澀谷區)",
+                        area: "原宿・表參道・代代木",
+                        station: "原宿站 / 表參道站",
+                        category: "銀杏・吉伊卡哇・藝術祭",
+                        badgeColor: "bg-pink-600 text-white",
+                        lat: 35.6717,
+                        lng: 139.6967,
+                        transitTip: "外苑前搭銀座線1站至表參道/原宿",
+                        desc: "在代代木公園欣賞厚厚的金黃銀杏地毯與紅葉；同時觀賞「ARTE TOKYO 代代木・澀谷核心區」大型戶外藝術，並朝聖「11/24-12/25 吉伊卡哇聖誕市集/主題店」與表參道燈飾。"
+                    },
+                    evening: {
+                        id: "s-d6-e",
+                        title: "🎄 港區三大聖誕市集巡禮：六本木 ➔ 麻布台之丘 ➔ 芝公園（12/4開幕首日！）",
+                        area: "六本木・麻布台・芝公園（東京鐵塔下）",
+                        station: "六本木站 ➔ 神谷町站 ➔ 御成門站",
+                        category: "三大聖誕市集連發",
+                        badgeColor: "bg-indigo-600 text-white",
+                        lat: 35.6604,
+                        lng: 139.7405,
+                        transitTip: "三個市集都在港區東京鐵塔周邊，彼此步行10~12分鐘可串聯！結束搭計程車或地鐵10分鐘回品川",
+                        desc: "一次收齊港區三強：①六本木之丘聖誕市集＆櫸坂通東京鐵塔燈海 ②麻布台之丘中央廣場聖誕市集 ③12/4當天剛開幕的「芝公園東京聖誕市集」（14公尺聖誕金字塔與東京鐵塔同框）！"
+                    }
+                }
+            },
+            {
+                dayId: "D7",
+                dateStr: "12/5 (六)",
+                theme: "最後補貨採買・靖國神社銀杏 ＆ 東京巨蛋 YOASOBI 演唱會",
+                zoneBadge: "有樂町/品川 ➔ 九段下・東京巨蛋",
+                transitSummary: "白天可睡飽或就近在有樂町 Bic Camera 買吸頂燈放回品川飯店；下午輕裝前往水道橋/九段下看靖國神社銀杏與 YOASOBI 演唱會！",
+                slots: {
+                    morning: {
+                        id: "s-d7-m",
+                        title: "🛍️ 演唱會前悠閒早晨 ＆ 大型戰利品（吸頂燈/伴手禮）最後補貨放回飯店",
+                        area: "有樂町 / 品川周邊",
+                        station: "JR 有樂町站 / 品川站",
+                        category: "彈性採買・打包",
+                        badgeColor: "bg-emerald-600 text-white",
+                        lat: 35.6749,
+                        lng: 139.7628,
+                        transitTip: "品川搭山手線僅 8 分鐘即達有樂町 Bic Camera，買完直接搭回品川放進房間最省力！",
+                        desc: "如果 Day 2 在新宿不想提著大盒「吸頂燈」去逛惠比壽，強烈建議把 Bic Camera 吸頂燈留在這天早上到「有樂町店」買，8分鐘車程直接提回品川王子房間放好，下午兩手空空去看演唱會！"
+                    },
+                    afternoon: {
+                        id: "s-d7-a",
+                        title: "🍂 靖國神社（參道巨木銀杏）＆ 東京巨蛋 YOASOBI 周邊商品排隊",
+                        area: "九段下・水道橋（東京巨蛋城）",
+                        station: "九段下站 / 水道橋站",
+                        category: "銀杏名所・演唱會周邊",
+                        badgeColor: "bg-amber-500 text-slate-950",
+                        lat: 35.6940,
+                        lng: 139.7448,
+                        transitTip: "靖國神社與東京巨蛋僅相距約 800 公尺（步行10~12分鐘或搭1站地鐵），排在一起超順路！",
+                        desc: "先至東京巨蛋（水道橋站）購買 YOASOBI 演唱會限定物販周邊；開演前空檔散步10分鐘至附圖推薦的私房景點「靖國神社」，在壯觀的大鳥居與金黃銀杏參道下靜心散步。"
+                    },
+                    evening: {
+                        id: "s-d7-e",
+                        title: "🎤 東京巨蛋 YOASOBI 演唱會！（Tokyo Dome Live）",
+                        area: "文京區・後樂園",
+                        station: "JR 水道橋站 / 後樂園站",
+                        category: "核心重頭戲・演唱會",
+                        badgeColor: "bg-fuchsia-600 text-white",
+                        lat: 35.7056,
+                        lng: 139.7519,
+                        transitTip: "散場時若水道橋站人潮較多，也可走到「春日站」搭都營三田線至三田轉京急線回品川！",
+                        desc: "萬眾矚目的 YOASOBI 東京巨蛋公演！東京巨蛋城（Tokyo Dome City）冬季也有璀璨的聖誕燈飾，散場後順道拍照留念。"
+                    }
+                }
+            },
+            {
+                dayId: "D8",
+                dateStr: "12/6 (日)",
+                theme: "品川站搭乘 N'EX 成田特快 ➔ 提前 2.5 小時抵達成田機場返台",
+                zoneBadge: "品川站 ➔ 成田國際機場 T2",
+                transitSummary: "飯店退房過馬路即達 JR 品川站，搭乘全車指定席「N'EX 成田特快」一班車直達成田機場第2航廈（免轉乘）。",
+                slots: {
+                    morning: {
+                        id: "s-d8-m",
+                        title: "🚄 品川站搭乘 JR 成田特快 N'EX 4號 (07:08發) 或 6號 (07:42發)",
+                        area: "品川站 ➔ 成田機場第2航廈",
+                        station: "JR 品川站（N'EX 月台）",
+                        category: "機場特快・提前2.5hr",
+                        badgeColor: "bg-rose-600 text-white",
+                        lat: 35.6284,
+                        lng: 139.7387,
+                        transitTip: "👑 N'EX 4號：07:08品川發 ➔ 08:16抵成田T2 ｜ 👍 N'EX 6號：07:42品川發 ➔ 08:53抵成田T2",
+                        desc: "06:45 辦理品川王子退房，帶著吸頂燈與行李箱過馬路進品川站。搭乘事先劃好位的 N'EX 直達成田機場，完美達成您「提前 2.5～3 小時抵達機場」的需求！"
+                    },
+                    afternoon: {
+                        id: "s-d8-a",
+                        title: "✈️ 成田機場免稅店採買 ＆ 11點多台灣虎航班機起飛返台",
+                        area: "成田國際機場 (NRT)",
+                        station: "成田空港第2ビル駅",
+                        category: "平安返台",
+                        badgeColor: "bg-sky-600 text-white",
+                        lat: 35.7719,
+                        lng: 140.3929,
+                        transitTip: "於台灣虎航櫃檯完成託運（注意吸頂燈貼易碎標籤），過安檢後逛免稅店",
+                        desc: "在成田機場做最後的伴手禮採買，搭乘 11 點多的虎航班機滿載回憶飛回台灣！"
+                    },
+                    evening: {
+                        id: "s-d8-e",
+                        title: "🏠 溫暖的家（整理戰利品與安裝日本吸頂燈！）",
+                        area: "台灣",
+                        station: "返抵台灣",
+                        category: "旅程圓滿結束",
+                        badgeColor: "bg-slate-600 text-white",
+                        lat: 35.6275,
+                        lng: 139.7366,
+                        transitTip: "旅程圓滿完成",
+                        desc: "8天7夜東京賞楓銀杏、寶可夢、聖誕市集與 YOASOBI 之旅圓滿結束！"
+                    }
+                }
+            }
+        ];
+
+        // Backup Pool Items (Spots from user's notes that can be swapped in anytime)
+        const DEFAULT_POOL = [
+            {
+                id: "pool-1",
+                title: "🎄 新豐州東京聖誕市集 ＋ ARTE TOKYO（臨海核心區）",
+                area: "江東區・豐州 / 台場",
+                station: "新豐州站（百合海鷗號）",
+                category: "備選聖誕市集・藝術祭",
+                badgeColor: "bg-indigo-600 text-white",
+                lat: 35.6491,
+                lng: 139.7898,
+                transitTip: "品川搭山手線至新橋，轉百合海鷗號至新豐州站",
+                desc: "11/20-12/25 舉辦的新豐州聖誕市集，可與「ARTE TOKYO 臨海核心區」以及豐洲千客萬來海鮮美食一起安排。"
+            },
+            {
+                id: "pool-2",
+                title: "🍂 國營昭和紀念公園（兩處壯觀銀杏林蔭大道）",
+                area: "東京都・立川市",
+                station: "JR 西立川站",
+                category: "附圖銀杏名所",
+                badgeColor: "bg-amber-500 text-slate-950",
+                lat: 35.7006,
+                lng: 139.3998,
+                transitTip: "新宿搭 JR 中央線青梅特快約 35 分鐘直達西立川站（門票450日圓）",
+                desc: "附圖表格景點：擁有「運河銀杏並木」與「語らいのイチョウ並木」兩處超壯觀的金黃銀杏隧道（11月中下旬最佳）。"
+            },
+            {
+                id: "pool-3",
+                title: "🍂 駒澤奧林匹克公園（享受運動與紅葉銀杏之美）",
+                area: "世田谷區・駒澤",
+                station: "駒澤大學站（東急田園都市線）",
+                category: "附圖銀杏名所",
+                badgeColor: "bg-amber-500 text-slate-950",
+                lat: 35.6266,
+                lng: 139.6615,
+                transitTip: "澀谷站搭東急田園都市線 3 站（約7分鐘）至駒澤大學站（免費入場）",
+                desc: "附圖表格景點：11月下旬～12月上旬最佳，在地人喜愛的悠閒紅葉與銀杏大道公園。"
+            },
+            {
+                id: "pool-4",
+                title: "🍁 小石川後樂園（東京巨蛋旁大名庭園楓紅）",
+                area: "文京區・後樂園",
+                station: "飯田橋站 / 後樂園站",
+                category: "巨蛋旁賞楓名所",
+                badgeColor: "bg-red-600 text-white",
+                lat: 35.7057,
+                lng: 139.7491,
+                transitTip: "就在東京巨蛋正隔壁！可排在 12/5 YOASOBI 演唱會下午順遊",
+                desc: "東京巨蛋旁最美的江戶初期迴遊式庭園，11月底至12月初大堰川與通天橋楓紅極美。"
+            }
+        ];
+
+        // Application State
+        let itineraryState = [];
+        let poolState = [];
+        let currentSelectedDay = "ALL";
+        let mapInstance = null;
+        let mapMarkersLayer = null;
+        let mapPolylineLayer = null;
+        let dragSourceInfo = null; // { dayIdx, slotKey }
+        let moveModalSource = null; // { dayIdx, slotKey }
+
+        // Initialize on Window Load
+        window.onload = function() {
+            loadStateFromStorage();
+            initLeafletMap();
+            renderDayPills();
+            renderItineraryList();
+            updateMapMarkers();
+            updatePoolBadge();
+        };
+
+        // Load or Initialize State
+        function loadStateFromStorage() {
+            try {
+                const savedDays = localStorage.getItem("tokyo2026_days_v1");
+                const savedPool = localStorage.getItem("tokyo2026_pool_v1");
+                if (savedDays && savedPool) {
+                    itineraryState = JSON.parse(savedDays);
+                    poolState = JSON.parse(savedPool);
+                } else {
+                    itineraryState = JSON.parse(JSON.stringify(DEFAULT_DAYS));
+                    poolState = JSON.parse(JSON.stringify(DEFAULT_POOL));
+                }
+            } catch (e) {
+                itineraryState = JSON.parse(JSON.stringify(DEFAULT_DAYS));
+                poolState = JSON.parse(JSON.stringify(DEFAULT_POOL));
+            }
+        }
+
+        function saveStateToStorage() {
+            try {
+                localStorage.setItem("tokyo2026_days_v1", JSON.stringify(itineraryState));
+                localStorage.setItem("tokyo2026_pool_v1", JSON.stringify(poolState));
+            } catch (e) {
+                console.warn("Storage unavailable", e);
+            }
+        }
+
+        function resetDefaultItinerary() {
+            itineraryState = JSON.parse(JSON.stringify(DEFAULT_DAYS));
+            poolState = JSON.parse(JSON.stringify(DEFAULT_POOL));
+            saveStateToStorage();
+            selectDay("ALL");
+            updatePoolBadge();
+            showToast("已恢復為預設最優順路行程！");
+        }
+
+        // Haversine Distance & Compass Direction from Shinagawa Prince Hotel
+        function getRelativePositionFromHotel(lat, lng) {
+            const R = 6371;
+            const dLat = (lat - HOTEL_BASE.lat) * Math.PI / 180;
+            const dLng = (lng - HOTEL_BASE.lng) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(HOTEL_BASE.lat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
+                      Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distKm = (R * c).toFixed(1);
+
+            // Direction
+            const dy = lat - HOTEL_BASE.lat;
+            const dx = Math.cos(Math.PI / 180 * HOTEL_BASE.lat) * (lng - HOTEL_BASE.lng);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            let dir = "品川周邊";
+            if (distKm > 0.8) {
+                if (angle >= 67.5 && angle < 112.5) dir = "品川正北方";
+                else if (angle >= 22.5 && angle < 67.5) dir = "品川東北方";
+                else if (angle >= -22.5 && angle < 22.5) dir = "品川正東方";
+                else if (angle >= -67.5 && angle < -22.5) dir = "品川東南方";
+                else if (angle >= -112.5 && angle < -67.5) dir = "品川正南方";
+                else if (angle >= -157.5 && angle < -112.5) dir = "品川西南方";
+                else if (angle >= 112.5 && angle < 157.5) dir = "品川西北方";
+                else dir = "品川正西方";
+            }
+            return { distKm, dir };
+        }
+
+        // Initialize Leaflet Map
+        function initLeafletMap() {
+            mapInstance = L.map('tokyo-map', {
+                center: [35.675, 139.750],
+                zoom: 12
+            });
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '&copy; OpenStreetMap'
+            }).addTo(mapInstance);
+
+            mapMarkersLayer = L.layerGroup().addTo(mapInstance);
+            mapPolylineLayer = L.layerGroup().addTo(mapInstance);
+        }
+
+        // Update Map Markers & Route Polyline based on selected day
+        function updateMapMarkers() {
+            if (!mapInstance) return;
+            mapMarkersLayer.clearLayers();
+            mapPolylineLayer.clearLayers();
+
+            const boundsPoints = [];
+
+            // 1. Always Draw Shinagawa Prince Hotel Base Marker
+            const hotelIcon = L.divIcon({
+                className: '',
+                html: `<div class="custom-pin hotel-pulse bg-rose-600 w-9 h-9 text-sm" title="品川王子大飯店 (基地)">★</div>`,
+                iconSize: [36, 36],
+                iconAnchor: [18, 18]
+            });
+
+            const hotelMarker = L.marker([HOTEL_BASE.lat, HOTEL_BASE.lng], { icon: hotelIcon, zIndexOffset: 1000 })
+                .bindPopup(`
+                    <div class="text-xs font-sans">
+                        <div class="font-black text-rose-600 text-sm mb-1">🏨 品川王子大飯店（住宿基地）</div>
+                        <div class="text-slate-600 mb-1">4-10-30 Takanawa, Minato-ku</div>
+                        <div class="bg-rose-50 text-rose-800 p-1.5 rounded font-medium">JR/京急「品川站」高輪口正對面，所有行程以此為中心出發！</div>
+                    </div>
+                `);
+            mapMarkersLayer.addLayer(hotelMarker);
+            boundsPoints.push([HOTEL_BASE.lat, HOTEL_BASE.lng]);
+
+            // 2. Filter days to display
+            const targetDays = currentSelectedDay === "ALL"
+                ? itineraryState
+                : itineraryState.filter(d => d.dayId === currentSelectedDay);
+
+            const slotColors = {
+                morning: { bg: "bg-amber-500", label: "☀️白天", hex: "#f59e0b" },
+                afternoon: { bg: "bg-emerald-600", label: "🌤️下午", hex: "#059669" },
+                evening: { bg: "bg-indigo-600", label: "🌙晚上", hex: "#4f46e5" }
+            };
+
+            targetDays.forEach((dayObj) => {
+                const dayNum = dayObj.dayId.replace("D", "");
+                const dayRouteCoords = [[HOTEL_BASE.lat, HOTEL_BASE.lng]];
+
+                ["morning", "afternoon", "evening"].forEach((slotKey, sIdx) => {
+                    const item = dayObj.slots[slotKey];
+                    if (!item || !item.lat || !item.lng) return;
+
+                    const sc = slotColors[slotKey];
+                    const pinLabel = currentSelectedDay === "ALL" ? `D${dayNum}` : `${sIdx + 1}`;
+                    const icon = L.divIcon({
+                        className: '',
+                        html: `<div class="custom-pin ${sc.bg} w-7 h-7 text-xs">${pinLabel}</div>`,
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    });
+
+                    const rel = getRelativePositionFromHotel(item.lat, item.lng);
+                    const marker = L.marker([item.lat, item.lng], { icon })
+                        .bindPopup(`
+                            <div class="text-xs font-sans max-w-[240px]">
+                                <div class="font-bold text-slate-500">${dayObj.dateStr} ・ ${sc.label}</div>
+                                <div class="font-black text-slate-900 text-sm my-1">${item.title}</div>
+                                <div class="text-rose-600 font-bold mb-1">📍 位於${rel.dir}（直線約 ${rel.distKm} km）</div>
+                                <div class="text-slate-600 bg-slate-100 p-1.5 rounded">🚊 ${item.transitTip}</div>
+                            </div>
+                        `);
+
+                    marker.on('click', () => {
+                        updateRadarInfo(item, dayObj.dateStr, sc.label);
+                    });
+
+                    mapMarkersLayer.addLayer(marker);
+                    boundsPoints.push([item.lat, item.lng]);
+                    dayRouteCoords.push([item.lat, item.lng]);
+                });
+
+                // Draw route polyline if single day is selected
+                if (currentSelectedDay !== "ALL" && dayRouteCoords.length > 1) {
+                    const polyline = L.polyline(dayRouteCoords, {
+                        color: '#e11d48',
+                        weight: 3,
+                        dashArray: '6, 8',
+                        opacity: 0.8
+                    });
+                    mapPolylineLayer.addLayer(polyline);
+                }
+            });
+
+            if (boundsPoints.length > 1) {
+                // In ALL view, focus on Greater Tokyo/Yokohama area first so Nikko doesn't zoom out too far
+                if (currentSelectedDay === "ALL") {
+                    mapInstance.setView([35.665, 139.740], 11);
+                } else {
+                    mapInstance.fitBounds(boundsPoints, { padding: [35, 35], maxZoom: 14 });
+                }
+            }
+        }
+
+        function focusHotelBase() {
+            if (!mapInstance) return;
+            mapInstance.flyTo([HOTEL_BASE.lat, HOTEL_BASE.lng], 15, { duration: 0.8 });
+            document.getElementById("radar-spot-name").innerText = "🏨 品川王子大飯店 (Shinagawa Prince Hotel)";
+            document.getElementById("radar-spot-dist").innerText = "住宿基準點 0 km";
+            document.getElementById("radar-spot-transit").innerHTML = "📍 地址：東京都港區高輪 4-10-30（品川站高輪口正對面）。去羽田機場18分、東京站10分、橫濱22分，回程搭 N'EX 直達成田機場！";
+        }
+
+        function fitMapToCurrentView() {
+            updateMapMarkers();
+        }
+
+        function focusSpotOnMap(dayIdx, slotKey) {
+            const dayObj = itineraryState[dayIdx];
+            const item = dayObj.slots[slotKey];
+            if (!item) return;
+
+            const slotNames = { morning: "☀️ 白天", afternoon: "🌤️ 下午", evening: "🌙 晚上" };
+            updateRadarInfo(item, dayObj.dateStr, slotNames[slotKey]);
+
+            if (mapInstance && item.lat && item.lng) {
+                mapInstance.flyTo([item.lat, item.lng], 14, { duration: 0.8 });
+            }
+        }
+
+        function updateRadarInfo(item, dateStr, slotLabel) {
+            const rel = getRelativePositionFromHotel(item.lat, item.lng);
+            document.getElementById("radar-spot-name").innerText = `[${dateStr} ${slotLabel}] ${item.title}`;
+            document.getElementById("radar-spot-dist").innerText = `${rel.dir}・約 ${rel.distKm} km`;
+            document.getElementById("radar-spot-transit").innerHTML = `
+                <strong>🚊 最順轉乘：</strong>${item.transitTip}<br>
+                <span class="text-slate-500">${item.desc}</span>
+            `;
+        }
+
+        // Render Day Filter Pills
+        function renderDayPills() {
+            const container = document.getElementById("day-pills-container");
+            const allBtn = document.getElementById("day-pill-ALL");
+            if (currentSelectedDay === "ALL") {
+                allBtn.className = "text-xs font-bold px-3 py-1 rounded-lg bg-amber-500 text-slate-950 shadow-sm transition";
+            } else {
+                allBtn.className = "text-xs font-bold px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition";
+            }
+
+            container.innerHTML = itineraryState.map((d, idx) => {
+                const isSelected = currentSelectedDay === d.dayId;
+                const activeClass = isSelected
+                    ? "bg-amber-500 text-slate-950 border-amber-600 shadow-sm font-black"
+                    : "bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 font-semibold";
+                return `
+                    <button onclick="selectDay('${d.dayId}')" class="border rounded-xl p-2 text-center transition flex flex-col items-center justify-center ${activeClass}">
+                        <span class="text-[11px] opacity-80">Day ${idx + 1}</span>
+                        <span class="text-xs">${d.dateStr.split(' ')[0]}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectDay(dayId) {
+            currentSelectedDay = dayId;
+            renderDayPills();
+            renderItineraryList();
+            updateMapMarkers();
+
+            const headerTitle = document.getElementById("map-header-title");
+            if (dayId === "ALL") {
+                headerTitle.innerText = "東京 8天7夜 全景點相對位置圖";
+            } else {
+                const dObj = itineraryState.find(d => d.dayId === dayId);
+                headerTitle.innerText = `${dObj.dateStr} 當日順路動線圖`;
+            }
+        }
+
+        // Render Day Cards and 3 Time Slots (Morning / Afternoon / Evening)
+        function renderItineraryList() {
+            const container = document.getElementById("days-list-container");
+            const daysToShow = currentSelectedDay === "ALL"
+                ? itineraryState.map((d, i) => ({ day: d, index: i }))
+                : itineraryState.map((d, i) => ({ day: d, index: i })).filter(x => x.day.dayId === currentSelectedDay);
+
+            const slotMeta = [
+                { key: "morning", label: "☀️ 白天時段 (07:30 - 12:30)", bgHeader: "bg-amber-50 border-amber-200 text-amber-900" },
+                { key: "afternoon", label: "🌤️ 下午時段 (13:00 - 17:00)", bgHeader: "bg-emerald-50 border-emerald-200 text-emerald-900" },
+                { key: "evening", label: "🌙 晚上時段 (17:30 - 21:30)", bgHeader: "bg-indigo-50 border-indigo-200 text-indigo-900" }
+            ];
+
+            container.innerHTML = daysToShow.map(({ day, index }) => {
+                const slotsHtml = slotMeta.map(sm => {
+                    const item = day.slots[sm.key];
+                    const rel = item ? getRelativePositionFromHotel(item.lat, item.lng) : { dir: "", distKm: 0 };
+
+                    return `
+                        <div class="slot-dropzone rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/70 p-2.5 flex flex-col justify-between"
+                             ondragover="handleDragOver(event)"
+                             ondragleave="handleDragLeave(event)"
+                             ondrop="handleDrop(event, ${index}, '${sm.key}')">
+                            
+                            <!-- Slot Header -->
+                            <div class="flex items-center justify-between px-2 py-1 rounded-lg border ${sm.bgHeader} text-xs font-bold mb-2">
+                                <span>${sm.label}</span>
+                                <button onclick="openMoveModal(${index}, '${sm.key}')" class="hover:underline text-[11px] flex items-center gap-1 opacity-85 hover:opacity-100">
+                                    <i class="fa-solid fa-right-left"></i> 移至他處
+                                </button>
+                            </div>
+
+                            <!-- Draggable Card Content -->
+                            <div class="draggable-card bg-white rounded-xl p-3.5 shadow-sm border border-slate-200 hover:border-amber-400 flex-1 flex flex-col justify-between"
+                                 draggable="true"
+                                 ondragstart="handleDragStart(event, ${index}, '${sm.key}')"
+                                 ondragend="handleDragEnd(event)"
+                                 onclick="focusSpotOnMap(${index}, '${sm.key}')">
+                                <div>
+                                    <div class="flex items-center justify-between gap-1.5 flex-wrap mb-1.5">
+                                        <span class="text-[11px] font-bold px-2 py-0.5 rounded-md ${item.badgeColor}">${item.category}</span>
+                                        <span class="text-[11px] font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">
+                                            📍 ${rel.dir} (${rel.distKm}km)
+                                        </span>
+                                    </div>
+                                    <h4 class="font-black text-slate-900 text-sm md:text-base leading-snug mb-1.5">${item.title}</h4>
+                                    <p class="text-xs text-slate-600 leading-relaxed mb-2.5">${item.desc}</p>
+                                </div>
+
+                                <div class="pt-2 border-t border-slate-100 space-y-1 text-[11px]">
+                                    <div class="flex items-center gap-1.5 text-slate-700 font-semibold">
+                                        <i class="fa-solid fa-location-dot text-amber-500 w-3.5 text-center"></i>
+                                        <span>區域車站：${item.station}</span>
+                                    </div>
+                                    <div class="flex items-start gap-1.5 text-emerald-800 bg-emerald-50/80 p-1.5 rounded-lg">
+                                        <i class="fa-solid fa-train text-emerald-600 w-3.5 text-center mt-0.5"></i>
+                                        <span>${item.transitTip}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                        <!-- Day Header -->
+                        <div class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div class="flex items-center gap-3">
+                                <span class="bg-amber-500 text-slate-950 font-black px-3 py-1.5 rounded-xl text-sm shadow">
+                                    Day ${index + 1}｜${day.dateStr}
+                                </span>
+                                <div>
+                                    <h3 class="font-black text-sm md:text-base text-white">${day.theme}</h3>
+                                    <span class="text-xs text-amber-300 font-medium">📍 動線分區：${day.zoneBadge}</span>
+                                </div>
+                            </div>
+                            <button onclick="selectDay('${day.dayId}')" class="self-start sm:self-auto text-xs bg-white/15 hover:bg-white/25 text-white px-3 py-1.5 rounded-xl font-bold transition flex items-center gap-1.5 whitespace-nowrap">
+                                <i class="fa-solid fa-route text-amber-400"></i> 在地圖顯示當日路線
+                            </button>
+                        </div>
+
+                        <!-- Day Transit Logic Sub-bar -->
+                        <div class="bg-amber-50/70 border-b border-amber-200/70 px-4 py-2 text-xs text-amber-950 flex items-center gap-2">
+                            <i class="fa-solid fa-compass text-amber-600"></i>
+                            <span><strong>當日轉乘優先邏輯：</strong>${day.transitSummary}</span>
+                        </div>
+
+                        <!-- 3 Slots Grid (Morning / Afternoon / Evening) -->
+                        <div class="p-3.5 grid grid-cols-1 md:grid-cols-3 gap-3">
+                            ${slotsHtml}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ==================== DRAG & DROP HANDLERS ====================
+        function handleDragStart(e, dayIdx, slotKey) {
+            dragSourceInfo = { dayIdx, slotKey };
+            e.currentTarget.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.currentTarget.classList.remove('dragging');
+            document.querySelectorAll('.slot-dropzone').forEach(el => el.classList.remove('drag-over'));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e, targetDayIdx, targetSlotKey) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            if (!dragSourceInfo) return;
+
+            const { dayIdx: srcDayIdx, slotKey: srcSlotKey } = dragSourceInfo;
+            if (srcDayIdx === targetDayIdx && srcSlotKey === targetSlotKey) return;
+
+            // Swap the two slots
+            const temp = itineraryState[srcDayIdx].slots[srcSlotKey];
+            itineraryState[srcDayIdx].slots[srcSlotKey] = itineraryState[targetDayIdx].slots[targetSlotKey];
+            itineraryState[targetDayIdx].slots[targetSlotKey] = temp;
+
+            saveStateToStorage();
+            renderItineraryList();
+            updateMapMarkers();
+            showToast(`已對調「${itineraryState[targetDayIdx].dateStr}」與「${itineraryState[srcDayIdx].dateStr}」的時段行程！`);
+            dragSourceInfo = null;
+        }
+
+        // ==================== MOVE / SWAP MODAL HANDLERS ====================
+        function openMoveModal(dayIdx, slotKey) {
+            moveModalSource = { dayIdx, slotKey };
+            const item = itineraryState[dayIdx].slots[slotKey];
+            document.getElementById("move-source-title").innerText = `[${itineraryState[dayIdx].dateStr}] ${item.title}`;
+
+            const daySelect = document.getElementById("move-target-day");
+            daySelect.innerHTML = itineraryState.map((d, i) =>
+                `<option value="${i}" ${i === dayIdx ? 'selected' : ''}>Day ${i + 1} - ${d.dateStr} (${d.zoneBadge})</option>`
+            ).join('');
+
+            document.getElementById("move-target-slot").value = slotKey;
+
+            const modal = document.getElementById("move-modal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
+
+        function closeMoveModal() {
+            const modal = document.getElementById("move-modal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+            moveModalSource = null;
+        }
+
+        function confirmMoveSlot() {
+            if (!moveModalSource) return;
+            const targetDayIdx = parseInt(document.getElementById("move-target-day").value, 10);
+            const targetSlotKey = document.getElementById("move-target-slot").value;
+            const { dayIdx: srcDayIdx, slotKey: srcSlotKey } = moveModalSource;
+
+            const temp = itineraryState[srcDayIdx].slots[srcSlotKey];
+            itineraryState[srcDayIdx].slots[srcSlotKey] = itineraryState[targetDayIdx].slots[targetSlotKey];
+            itineraryState[targetDayIdx].slots[targetSlotKey] = temp;
+
+            saveStateToStorage();
+            renderItineraryList();
+            updateMapMarkers();
+            closeMoveModal();
+            showToast("已完成時段對調！");
+        }
+
+        function moveSlotToPool() {
+            if (!moveModalSource) return;
+            const { dayIdx, slotKey } = moveModalSource;
+            const currentItem = itineraryState[dayIdx].slots[slotKey];
+
+            // Push current item to pool and replace with a free/flexible block
+            poolState.unshift(currentItem);
+            itineraryState[dayIdx].slots[slotKey] = {
+                id: "free-" + Date.now(),
+                title: "☕ 自由彈性時段（可從備選庫加入景點或休息採買）",
+                area: "品川 / 東京市區",
+                station: "品川站周邊",
+                category: "彈性空檔",
+                badgeColor: "bg-slate-500 text-white",
+                lat: HOTEL_BASE.lat,
+                lng: HOTEL_BASE.lng,
+                transitTip: "可點擊上方「備選景點庫」指派新行程至此時段",
+                desc: "此時段已騰空，您可以安排咖啡廳休息、回品川王子大飯店放戰利品，或從備選庫挑一個景點放進來。"
+            };
+
+            saveStateToStorage();
+            renderItineraryList();
+            updateMapMarkers();
+            updatePoolBadge();
+            closeMoveModal();
+            showToast("已將原行程移至備選庫，並騰出彈性時段！");
+        }
+
+        // ==================== BACKUP POOL MODAL HANDLERS ====================
+        function updatePoolBadge() {
+            document.getElementById("pool-count-badge").innerText = poolState.length;
+        }
+
+        function openPoolModal() {
+            const daySelect = document.getElementById("pool-target-day");
+            daySelect.innerHTML = itineraryState.map((d, i) =>
+                `<option value="${i}">Day ${i + 1} (${d.dateStr})</option>`
+            ).join('');
+
+            renderPoolItems();
+            const modal = document.getElementById("pool-modal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
+
+        function closePoolModal() {
+            const modal = document.getElementById("pool-modal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        function renderPoolItems() {
+            const container = document.getElementById("pool-items-container");
+            if (poolState.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-xs text-slate-400">目前備選庫中沒有未排入的景點。</div>`;
+                return;
+            }
+            container.innerHTML = poolState.map((item, idx) => `
+                <div class="bg-slate-50 rounded-xl p-3 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${item.badgeColor}">${item.category}</span>
+                        <h4 class="font-bold text-slate-900 text-sm mt-1">${item.title}</h4>
+                        <p class="text-xs text-slate-600 mt-0.5">${item.desc}</p>
+                        <span class="text-[11px] text-slate-500 mt-1 inline-block">🚊 ${item.station}｜${item.transitTip}</span>
+                    </div>
+                    <button onclick="assignPoolItemToSchedule(${idx})" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs px-3 py-2 rounded-xl whitespace-nowrap shadow-sm transition self-end sm:self-center">
+                        <i class="fa-solid fa-arrow-right-to-bracket mr-1"></i>排入上方指定時段
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function assignPoolItemToSchedule(poolIdx) {
+            const targetDayIdx = parseInt(document.getElementById("pool-target-day").value, 10);
+            const targetSlotKey = document.getElementById("pool-target-slot").value;
+
+            const chosenItem = poolState.splice(poolIdx, 1)[0];
+            const replacedItem = itineraryState[targetDayIdx].slots[targetSlotKey];
+
+            // If replaced item isn't an empty placeholder, keep it in pool
+            if (replacedItem && !String(replacedItem.id).startsWith("free-")) {
+                poolState.push(replacedItem);
+            }
+
+            itineraryState[targetDayIdx].slots[targetSlotKey] = chosenItem;
+            saveStateToStorage();
+            renderPoolItems();
+            renderItineraryList();
+            updateMapMarkers();
+            updatePoolBadge();
+            showToast(`已將「${chosenItem.title}」排入 ${itineraryState[targetDayIdx].dateStr}！`);
+        }
+
+        function addCustomSpotToSchedule() {
+            const titleInput = document.getElementById("custom-spot-title");
+            const areaInput = document.getElementById("custom-spot-area");
+            const title = titleInput.value.trim();
+            const area = areaInput.value.trim() || "東京市區";
+
+            if (!title) {
+                showToast("請輸入自訂行程名稱！");
+                return;
+            }
+
+            const targetDayIdx = parseInt(document.getElementById("pool-target-day").value, 10);
+            const targetSlotKey = document.getElementById("pool-target-slot").value;
+
+            const replacedItem = itineraryState[targetDayIdx].slots[targetSlotKey];
+            if (replacedItem && !String(replacedItem.id).startsWith("free-")) {
+                poolState.push(replacedItem);
+            }
+
+            itineraryState[targetDayIdx].slots[targetSlotKey] = {
+                id: "custom-" + Date.now(),
+                title: "⭐ " + title,
+                area: area,
+                station: area,
+                category: "自訂行程",
+                badgeColor: "bg-teal-600 text-white",
+                lat: 35.675,
+                lng: 139.750,
+                transitTip: "從品川站搭乘 JR 或地鐵前往",
+                desc: `使用者自訂行程（地點：${area}）。`
+            };
+
+            titleInput.value = "";
+            areaInput.value = "";
+            saveStateToStorage();
+            renderPoolItems();
+            renderItineraryList();
+            updateMapMarkers();
+            updatePoolBadge();
+            closePoolModal();
+            showToast(`已新增「${title}」至 ${itineraryState[targetDayIdx].dateStr}！`);
+        }
+
+        // ==================== MAIN VIEW TAB SWITCHER ====================
+        function switchMainTab(tabName) {
+            const views = ["itinerary", "transport", "illumination", "foliage"];
+            views.forEach(v => {
+                const sectionEl = document.getElementById(`view-${v}`);
+                const btnEl = document.getElementById(`tab-btn-${v}`);
+                if (v === tabName) {
+                    sectionEl.classList.remove("hidden");
+                    btnEl.className = "tab-btn bg-amber-500 text-slate-950 font-bold px-3.5 py-2 rounded-xl text-xs md:text-sm whitespace-nowrap flex items-center gap-1.5 shadow-sm transition";
+                } else {
+                    sectionEl.classList.add("hidden");
+                    btnEl.className = "tab-btn bg-white/10 hover:bg-white/20 text-white font-medium px-3.5 py-2 rounded-xl text-xs md:text-sm whitespace-nowrap flex items-center gap-1.5 transition";
+                }
+            });
+
+            if (tabName === "itinerary" && mapInstance) {
+                setTimeout(() => {
+                    mapInstance.invalidateSize();
+                }, 150);
+            }
+        }
+
+        // Toast Helper
+        let toastTimer = null;
+        function showToast(msg) {
+            const box = document.getElementById("toast-box");
+            document.getElementById("toast-text").innerText = msg;
+            box.classList.remove("hidden");
+            box.classList.add("flex");
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                box.classList.add("hidden");
+                box.classList.remove("flex");
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
