@@ -39,9 +39,11 @@
     document.documentElement.setAttribute("data-theme", t);
     try{ localStorage.setItem("tk26-theme", t); }catch(e){}
     $$("#themeSwitch button").forEach(b => b.classList.toggle("on", b.dataset.theme === t));
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", t === "maple" ? "#b4432a" : "#2f43c9");
     if (window._map) refreshMapStyle();
   }
   $$("#themeSwitch button").forEach(b => b.addEventListener("click", () => setTheme(b.dataset.theme)));
+  $("#mTheme").addEventListener("click", () => setTheme(document.documentElement.getAttribute("data-theme") === "maple" ? "indigo" : "maple"));
   setTheme(document.documentElement.getAttribute("data-theme"));
   $("#ver").textContent = "行程 " + T.version;
 
@@ -50,11 +52,18 @@
   function show(id){
     if (!SECS.includes(id)) id = "overview";
     $$(".sec").forEach(s => s.classList.toggle("on", s.id === "sec-"+id));
-    $$("#nav a").forEach(a => a.classList.toggle("on", a.dataset.sec === id));
+    $$("[data-sec]").forEach(a => a.classList.toggle("on", a.dataset.sec === id));
+    const NAMES = { overview:"總覽", board:"行程看板", map:"地圖", events:"點燈・聖誕・紅葉", food:"餐廳", todo:"預約待辦", stay:"住宿・航班", tax:"退稅新制", expense:"消費表" };
+    $("#mSec").textContent = NAMES[id];
+    sheet(false);
     if (id === "map") initMap();
     window.scrollTo(0, 0);
   }
   window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+  function sheet(open){ $("#sheet").classList.toggle("on", open); $("#sheetBg").classList.toggle("on", open); $("#sheet").setAttribute("aria-hidden", !open); }
+  $("#moreBtn").addEventListener("click", () => sheet(!$("#sheet").classList.contains("on")));
+  $("#sheetBg").addEventListener("click", () => sheet(false));
+  const isPhone = () => matchMedia("(max-width:760px)").matches;
 
   /* ---------- itinerary state (kanban order) ---------- */
   const ORIG = T.items.map(i => ({...i}));
@@ -97,7 +106,12 @@
   }
 
   /* ---------- itinerary board: day tabs, each day is a 3-column kanban (上午／下午／晚上) ---------- */
-  let boardDay = store.get("boardDay", 1);
+  function tripDayToday(){
+    const jst = new Date(Date.now() + 9*3600e3), m = jst.getUTCMonth()+1, d = jst.getUTCDate();
+    const key = `${String(m).padStart(2,"0")}/${String(d).padStart(2,"0")}`;
+    return T.days.find(x => x.date === key)?.id || 0;
+  }
+  let boardDay = tripDayToday() || store.get("boardDay", 1);
   function cardHTML(i){
     const r = rel(i);
     const title = i.link ? `<a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.title)}</a>` : esc(i.title);
@@ -110,13 +124,15 @@
         ${i.transit ? `<div class="tr">🚃 ${esc(i.transit)}</div>` : ""}
         ${i.note ? `<div>${esc(i.note)}</div>` : ""}
         <div class="ctrl"><label class="small muted">移到 <select data-move="${i.id}">${opts}</select></label>
-        <button class="maplink" data-go="${i.id}">在地圖上看</button></div>
+        <button class="maplink" data-go="${i.id}">在地圖上看</button>
+        <a class="navlink" href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}&travelmode=transit" target="_blank" rel="noopener">🧭 Google 導航</a></div>
       </div></div>`;
   }
   function renderBoard(){
     $("#boardLegend").innerHTML = Object.entries(CAT).map(([k,v]) => `<span><i style="background:var(--c-${k})"></i>${v}</span>`).join("");
     $("#boardTabs").innerHTML = T.days.map(d => `<button role="tab" class="daytab ${d.id===boardDay?"on":""}" data-day="${d.id}" style="--dc:var(--d${d.id})" aria-selected="${d.id===boardDay}">
-      <b>D${d.id}</b><span>${d.date}<small>（${d.dow}）</small></span><em>${byDay(d.id).length}</em></button>`).join("");
+      <b>D${d.id}${d.id===tripDayToday()?' · 今天':''}</b><span>${d.date}<small>（${d.dow}）</small></span><em>${byDay(d.id).length}</em></button>`).join("");
+    $(".daytab.on")?.scrollIntoView({ block:"nearest", inline:"center", behavior:"smooth" });
     const d = T.days.find(x => x.id === boardDay), list = byDay(boardDay);
     $("#board").innerHTML = `<div class="day-title" style="--dc:var(--d${d.id})"><b>D${d.id}</b> ${d.date}（${d.dow}）<span>${esc(d.title)}</span><em class="nav-hint">← → 切換天數</em></div>
       <div class="board3" style="--dc:var(--d${d.id})">${SLOTS.map(([k, label, range]) => {
@@ -124,7 +140,7 @@
         return `<div class="col"><div class="col-head"><div class="d"><span>${label}</span><small>${range}</small><em>${cards.length}</em></div></div>
           <div class="col-body" data-slot="${k}">${cards.map(cardHTML).join("")}</div></div>`;
       }).join("")}</div>`;
-    if (window.Sortable) $$("#board .col-body").forEach(el => new Sortable(el, { group:"slots", animation:150, delay:150, delayOnTouchOnly:true, ghostClass:"sortable-ghost", onEnd: saveBoard }));
+    if (window.Sortable && !isPhone()) $$("#board .col-body").forEach(el => new Sortable(el, { group:"slots", animation:150, delay:150, delayOnTouchOnly:true, ghostClass:"sortable-ghost", onEnd: saveBoard }));
   }
   function persist(){
     const saved = {};
@@ -139,6 +155,15 @@
   }
   function setDay(n){ boardDay = Math.min(8, Math.max(1, n)); store.set("boardDay", boardDay); renderBoard(); }
   $("#boardTabs").addEventListener("click", e => { const b = e.target.closest("[data-day]"); if (b) setDay(+b.dataset.day); });
+  (function(){ // swipe left/right on the board to change day
+    let x0 = null, y0 = null;
+    $("#board").addEventListener("touchstart", e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive:true });
+    $("#board").addEventListener("touchend", e => {
+      if (x0 == null) return;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0; x0 = null;
+      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) setDay(boardDay + (dx < 0 ? 1 : -1));
+    }, { passive:true });
+  })();
   document.addEventListener("keydown", e => {
     if (!$("#sec-board").classList.contains("on") || /input|select|textarea/i.test(e.target.tagName)) return;
     if (e.key === "ArrowRight") setDay(boardDay + 1);
@@ -201,7 +226,7 @@
         const m = L.marker([i.lat, i.lng], {
           icon: L.divIcon({ className:"", html:`<div class="pin ${on?"":"faded"}" style="${on?`--dc:var(--d${d.id})`:""}">${on?label:""}</div>`, iconSize:[24,24], iconAnchor:[12,12] }),
           zIndexOffset: on ? 500 : 0, opacity: on ? 1 : .55
-        }).bindPopup(`<b>D${label} ${esc(i.time)}</b><br>${esc(i.title)}<br><span style="color:#6b6b7b">${esc(r.text)}</span>${i.link?`<br><a href="${esc(i.link)}" target="_blank" rel="noopener">Tabelog</a>`:""}`).addTo(layer);
+        }).bindPopup(`<b>D${label} ${esc(i.time)}</b><br>${esc(i.title)}<br><span style="color:#6b6b7b">${esc(r.text)}</span>${i.link?`<br><a href="${esc(i.link)}" target="_blank" rel="noopener">Tabelog</a>`:""}<br><a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}&travelmode=transit" target="_blank" rel="noopener">🧭 Google 導航</a>`).addTo(layer);
         markerById[i.id] = m;
         if (on){ route.push([i.lat, i.lng]); pts.push([i.lat, i.lng]); list.push({ i, label, r }); }
       });
@@ -222,7 +247,7 @@
   /* ---------- events ---------- */
   function renderEvents(){
     $("#evTable").innerHTML = `<tr><th>活動</th><th>期間</th><th>時間</th><th>費用</th><th>排在</th></tr>` +
-      T.events.map(e => `<tr><td><a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(e.name)}</a></td><td class="mono">${esc(e.when)}</td><td>${esc(e.hours)}</td><td>${esc(e.fee)}</td><td><span class="tag t-accent">${esc(e.day)}</span></td></tr>`).join("");
+      T.events.map(e => `<tr><td class="name"><a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(e.name)}</a></td><td class="mono" data-l="期間">${esc(e.when)}</td><td data-l="時間">${esc(e.hours)}</td><td data-l="費用">${esc(e.fee)}</td><td data-l="排在"><span class="tag t-accent">${esc(e.day)}</span></td></tr>`).join("");
   }
 
   /* ---------- Google Sheet API (Apps Script web app) ---------- */
@@ -275,13 +300,13 @@
     const th = (key, label) => `<th class="sortable" data-k="${key}">${label}${foodSort.k===key?(foodSort.dir<0?" ↓":" ↑"):""}</th>`;
     $("#foodTable").innerHTML = `<tr>${th("name","店名")}${th("type","種類")}${th("tabelog","Tabelog")}${th("google","Google")}${th("area","地區")}<th>公休</th><th>預約</th>${th("day","排在")}<th></th></tr>` +
       rows.map(f => `<tr>
-        <td>${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>` : `<b>${esc(f.name)}</b>`}</td>
-        <td><span class="tag t-food">${esc(f.type)}</span></td>
-        <td class="num"><span class="score ${Number(f.tabelog)>=3.8?"hi":""}">${f.tabelog!==""&&f.tabelog!=null?Number(f.tabelog).toFixed(2):"—"}</span><br><span class="muted small">${f.tabelogReviews?Number(f.tabelogReviews).toLocaleString()+" 則":""}</span></td>
-        <td class="num">${f.google!==""&&f.google!=null?Number(f.google).toFixed(1):"—"}<br><span class="muted small">${f.googleReviews?Number(f.googleReviews).toLocaleString()+" 則":""}</span></td>
-        <td>${esc(f.area)}</td><td>${esc(f.closed)}</td><td>${esc(f.reserve)}</td>
-        <td>${f.day?`<span class="tag ${/^Day/.test(f.day)?"t-accent":"t-move"}">${esc(f.day)}</span>`:""}</td>
-        <td><button class="btn danger sm" data-del="${esc(f.id)}">刪除</button></td></tr>`).join("");
+        <td class="name">${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>` : `<b>${esc(f.name)}</b>`}</td>
+        <td data-l="種類"><span class="tag t-food">${esc(f.type)}</span></td>
+        <td class="num" data-l="Tabelog"><span class="score ${Number(f.tabelog)>=3.8?"hi":""}">${f.tabelog!==""&&f.tabelog!=null?Number(f.tabelog).toFixed(2):"—"}</span><br><span class="muted small">${f.tabelogReviews?Number(f.tabelogReviews).toLocaleString()+" 則":""}</span></td>
+        <td class="num" data-l="Google">${f.google!==""&&f.google!=null?Number(f.google).toFixed(1):"—"}<br><span class="muted small">${f.googleReviews?Number(f.googleReviews).toLocaleString()+" 則":""}</span></td>
+        <td data-l="地區">${esc(f.area)}</td><td data-l="公休">${esc(f.closed)}</td><td data-l="預約">${esc(f.reserve)}</td>
+        <td data-l="排在">${f.day?`<span class="tag ${/^Day/.test(f.day)?"t-accent":"t-move"}">${esc(f.day)}</span>`:""}</td>
+        <td class="act"><button class="btn danger sm" data-del="${esc(f.id)}">刪除</button></td></tr>`).join("");
   }
   $("#foodTypes").addEventListener("click", e => { const b = e.target.closest("[data-t]"); if (b){ foodType = b.dataset.t; renderFood(); } });
   $("#foodTable").addEventListener("click", async e => {
@@ -356,7 +381,7 @@
       : `<p class="muted small">還沒有記帳資料。</p>`;
     const rows = EXP.slice().sort((a,b) => a.day-b.day || String(a.created||"").localeCompare(String(b.created||"")));
     $("#expTable").innerHTML = `<tr><th>日期</th><th>分類</th><th>品項</th><th style="text-align:right">金額</th><th>付款</th><th>備註</th><th></th></tr>` +
-      (rows.length ? rows.map(e => { const d = T.days.find(x => x.id === e.day); return `<tr><td class="mono">D${e.day} ${d?d.date:""}</td><td><span class="tag t-move">${esc(e.cat)}</span></td><td>${esc(e.item)}</td><td class="num">${yen(e.amount)}</td><td>${esc(e.pay)}</td><td class="muted">${esc(e.note)}</td><td><button class="btn danger sm" data-del="${esc(e.id)}">刪除</button></td></tr>`; }).join("")
+      (rows.length ? rows.map(e => { const d = T.days.find(x => x.id === e.day); return `<tr><td class="mono" data-l="日期">D${e.day} ${d?d.date:""}</td><td data-l="分類"><span class="tag t-move">${esc(e.cat)}</span></td><td class="name">${esc(e.item)}</td><td class="num amt" data-l="金額">${yen(e.amount)}</td><td data-l="付款">${esc(e.pay)}</td><td class="muted" data-l="備註">${esc(e.note)}</td><td class="act"><button class="btn danger sm" data-del="${esc(e.id)}">刪除</button></td></tr>`; }).join("")
       : `<tr><td colspan="7" class="muted">還沒有資料。</td></tr>`);
   }
   $("#expDay").innerHTML = T.days.map(d => `<option value="${d.id}">D${d.id} ${d.date}（${d.dow}）</option>`).join("");

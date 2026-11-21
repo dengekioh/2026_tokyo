@@ -2,10 +2,16 @@
 <html lang="zh-Hant" data-theme="maple">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b4432a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="東京 2026">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍁</text></svg>">
 <title>2026 東京賞楓之旅</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="assets/style.css?v=202611220016">
+<link rel="stylesheet" href="assets/style.css?v=202611220038">
 <script>
   // theme: ?theme=indigo|maple overrides the saved choice
   (function(){var q=new URLSearchParams(location.search).get('theme');var s=null;try{s=localStorage.getItem('tk26-theme')}catch(e){}
@@ -36,6 +42,13 @@
       <p style="margin-top:10px" id="ver"></p>
     </div>
   </aside>
+
+  <!-- mobile top bar -->
+  <header class="mtop">
+    <span class="mlogo">🍁</span>
+    <div class="mtitle"><b id="mSec">總覽</b><span>東京 11/29–12/06</span></div>
+    <button class="mtheme" id="mTheme" aria-label="切換主題"><i></i></button>
+  </header>
 
   <main>
     <!-- 00 overview -->
@@ -226,10 +239,32 @@
   </main>
 </div>
 
+<!-- mobile bottom tab bar + "more" sheet -->
+<nav class="tabbar" id="tabbar">
+  <a href="#board" data-sec="board"><span>🗓️</span>行程</a>
+  <a href="#map" data-sec="map"><span>🗺️</span>地圖</a>
+  <a href="#food" data-sec="food"><span>🍜</span>餐廳</a>
+  <a href="#expense" data-sec="expense"><span>💴</span>記帳</a>
+  <button id="moreBtn" type="button"><span>☰</span>更多</button>
+</nav>
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet" aria-hidden="true">
+  <div class="grip"></div>
+  <a href="#overview" data-sec="overview"><span>🏠</span>總覽</a>
+  <a href="#board" data-sec="board"><span>🗓️</span>行程看板</a>
+  <a href="#map" data-sec="map"><span>🗺️</span>地圖</a>
+  <a href="#events" data-sec="events"><span>🎄</span>點燈・聖誕・紅葉</a>
+  <a href="#food" data-sec="food"><span>🍜</span>餐廳</a>
+  <a href="#todo" data-sec="todo"><span>✅</span>預約待辦</a>
+  <a href="#stay" data-sec="stay"><span>🏨</span>住宿・航班</a>
+  <a href="#tax" data-sec="tax"><span>🧾</span>退稅新制</a>
+  <a href="#expense" data-sec="expense"><span>💴</span>消費表</a>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
-<script src="assets/data.js?v=202611220016"></script>
-<script src="assets/tax.js?v=202611220016"></script>
-<script src="assets/app.js?v=202611220016"></script>
+<script src="assets/data.js?v=202611220038"></script>
+<script src="assets/tax.js?v=202611220038"></script>
+<script src="assets/app.js?v=202611220038"></script>
 </body>
 </html>

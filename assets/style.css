@@ -358,3 +358,119 @@ footer{color:var(--faint);font-size:12.5px;border-top:1px solid var(--line);padd
 .board3 .col-body{min-height:120px}
 .board3 .card .top{justify-content:space-between}
 @media (max-width:960px){ .board3{grid-template-columns:1fr} .day-title .nav-hint{display:none} }
+
+/* =====================================================================
+   Mobile (phone) layout — app-style top bar + bottom tab bar
+   ===================================================================== */
+.mtop,.tabbar,.sheet,.sheet-bg{display:none}
+.navlink{font-size:12px;color:var(--accent-ink);text-decoration:none;font-weight:700}
+
+@media (max-width:760px){
+  body{font-size:15px;background-size:22px 22px}
+  .shell{display:block}
+  .side{display:none}
+  main{padding:14px 14px calc(84px + env(safe-area-inset-bottom))}
+
+  /* top bar */
+  .mtop{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:1100;
+    padding:calc(8px + env(safe-area-inset-top)) 14px 8px;background:color-mix(in srgb,var(--surface) 88%,transparent);
+    backdrop-filter:saturate(1.6) blur(14px);-webkit-backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid var(--line)}
+  .mlogo{font-size:22px;line-height:1}
+  .mtitle{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+  .mtitle b{font-size:16px;color:var(--ink)}
+  .mtitle span{font-size:11.5px;color:var(--muted)}
+  .mtheme{margin-left:auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--panel);display:flex;align-items:center;justify-content:center;padding:0}
+  .mtheme i{width:16px;height:16px;border-radius:50%;background:var(--grad);display:block}
+
+  /* bottom tab bar */
+  .tabbar{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:1200;
+    padding:6px 6px calc(6px + env(safe-area-inset-bottom));background:color-mix(in srgb,var(--surface) 90%,transparent);
+    backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);border-top:1px solid var(--line)}
+  .tabbar a,.tabbar button{display:flex;flex-direction:column;align-items:center;gap:1px;font-size:11px;color:var(--muted);text-decoration:none;
+    background:none;border:0;padding:4px 0;border-radius:10px;-webkit-tap-highlight-color:transparent}
+  .tabbar span{font-size:20px;line-height:1.2;transition:transform .2s var(--ease)}
+  .tabbar a.on{color:var(--accent-ink);font-weight:700;background:var(--accent-soft)}
+  .tabbar a.on span{transform:translateY(-2px) scale(1.08)}
+
+  /* "more" bottom sheet */
+  .sheet-bg{display:block;position:fixed;inset:0;z-index:1300;background:rgba(15,15,25,.35);opacity:0;pointer-events:none;transition:opacity .25s}
+  .sheet-bg.on{opacity:1;pointer-events:auto}
+  .sheet{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:1400;
+    padding:10px 14px calc(18px + env(safe-area-inset-bottom));background:var(--panel);border-radius:18px 18px 0 0;
+    box-shadow:0 -10px 40px rgba(0,0,0,.18);transform:translateY(105%);transition:transform .3s var(--ease)}
+  .sheet.on{transform:none}
+  .sheet .grip{grid-column:1/-1;width:40px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 6px}
+  .sheet a{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:12px;background:var(--tint);
+    text-decoration:none;color:var(--ink);font-size:12.5px;text-align:center}
+  .sheet a span{font-size:24px}
+  .sheet a.on{background:var(--accent-soft);color:var(--accent-ink);font-weight:700}
+
+  /* typography & blocks */
+  h2{font-size:20px}
+  .sec-head{margin-bottom:4px}
+  .lede{font-size:13.5px;margin:8px 0 14px}
+  .hero{padding:20px 18px}
+  .hero h1{font-size:21px}
+  .hero .leaf{font-size:34px;right:14px;top:14px} .hero .leaf2{display:none}
+  .grid4{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .grid2,.grid3{grid-template-columns:1fr;gap:12px}
+  .stat{padding:10px 12px} .stat .v{font-size:18px}
+  .panel{padding:16px}
+  .kv{grid-template-columns:84px minmax(0,1fr);font-size:13.5px}
+
+  /* touch: no hover lifts, bigger targets */
+  .btn{padding:9px 16px;font-size:14px}
+  .btn.sm{padding:6px 12px;font-size:13px}
+  .chip{padding:6px 12px}
+  .form{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .form input,.form select{font-size:16px;padding:9px 10px} /* 16px stops iOS zoom-on-focus */
+  .form .btn{grid-column:1/-1}
+
+  /* itinerary */
+  .daytabs{position:sticky;top:calc(52px + env(safe-area-inset-top));z-index:900;margin:0 -14px;padding:8px 14px;
+    background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+  .daytabs::-webkit-scrollbar{display:none}
+  .daytab{min-width:92px;flex:0 0 auto;scroll-snap-align:center;padding:7px 10px 8px}
+  .daytab span{font-size:14px}
+  #sec-board .toolbar{margin-top:8px!important}
+  #boardLegend{display:none}
+  .day-title{font-size:15px;margin-bottom:10px}
+  .board3{grid-template-columns:1fr;gap:12px}
+  .board3 .col-body{min-height:0}
+  .board3 .col-body:empty::after{content:"（沒有行程）";font-size:12.5px;color:var(--faint);padding:4px 6px}
+  .card{cursor:pointer}
+  .card h4{font-size:15px}
+  .card .more .ctrl select{font-size:15px;padding:5px 8px}
+  .navlink{display:inline-block;padding:6px 12px;border-radius:999px;background:var(--accent-soft)}
+
+  /* map */
+  .map-wrap{grid-template-columns:1fr;gap:10px}
+  #map{height:calc(62vh - env(safe-area-inset-top));min-height:320px}
+  .map-list{max-height:none}
+  #mapDays{flex-wrap:nowrap;overflow-x:auto;margin:0 -14px 10px;padding:0 14px 4px;scrollbar-width:none}
+  #mapDays::-webkit-scrollbar{display:none}
+  #mapDays .chip{flex:0 0 auto}
+
+  /* tables become cards */
+  #foodTable,#expTable,#evTable{display:block}
+  #foodTable tbody,#expTable tbody,#evTable tbody{display:block}
+  #foodTable tr:first-child,#expTable tr:first-child,#evTable tr:first-child{display:none}
+  #foodTable tr,#expTable tr,#evTable tr{display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;padding:12px 14px;border-bottom:1px solid var(--line2)}
+  #foodTable td,#expTable td,#evTable td{display:block;padding:0;border:0;text-align:left}
+  #foodTable td.name,#expTable td.name,#evTable td.name{grid-column:1/-1;font-size:15.5px;font-weight:700;margin-bottom:4px}
+  #foodTable td[data-l]::before,#expTable td[data-l]::before,#evTable td[data-l]::before{content:attr(data-l);display:block;font-size:11px;color:var(--faint);font-family:var(--sans);font-weight:400}
+  #foodTable td.num,#expTable td.num{text-align:left}
+  #foodTable td.act,#expTable td.act{grid-column:1/-1;margin-top:6px}
+  #expTable td.amt{font-size:16px;font-weight:700;color:var(--ink)}
+  #ovFoliage th:nth-child(4),#ovFoliage td:nth-child(4){display:none}
+  .dt th,.dt td{padding:8px 10px}
+  #foodTypes{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:100%}
+  #foodTypes .chip{flex:0 0 auto}
+  .rank li{padding:14px 14px 14px 54px}
+  .rank li::before{left:14px}
+}
+@media (hover:none){
+  .card:hover,.stat:hover,.panel:not(.flush):hover,.rank li:hover,.daytab:hover,.chip:hover,.btn:hover,.col:hover{transform:none;box-shadow:var(--shadow)}
+  .card:active{transform:scale(.985)}
+}
