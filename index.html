@@ -62,13 +62,14 @@
     <!-- 01 board -->
     <section class="sec" id="sec-board">
       <div class="sec-head"><span class="sec-n">01</span><h2>行程看板</h2></div>
-      <p class="lede">每張卡片是一個行程點，可以拖曳到別的時間或別天（變更只存在這台裝置）。點卡片看交通方式與備註，卡片下方是離飯店的直線距離與方位。</p>
-      <div class="toolbar">
+      <p class="lede">點上方分頁切換天數（也可以按鍵盤 ← →）。點卡片看交通與備註，裡面可以上移、下移或移到別天；變更只存在這台裝置。卡片下方是離飯店的直線距離與方位。</p>
+      <div class="daytabs" id="boardTabs" role="tablist"></div>
+      <div class="toolbar" style="margin-top:12px">
         <div class="legend" id="boardLegend"></div>
         <span style="flex:1"></span>
         <button class="btn ghost sm" id="boardReset">還原原始行程</button>
       </div>
-      <div class="board" id="board"></div>
+      <div id="board"></div>
     </section>
 
     <!-- 02 map -->
