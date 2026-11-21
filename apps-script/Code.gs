@@ -19,6 +19,11 @@ function setup(){
     const sh = ss.getSheetByName(name) || ss.insertSheet(name);
     sh.getRange(1, 1, 1, HEADERS[name].length).setValues([HEADERS[name]]).setFontWeight("bold");
     sh.setFrozenRows(1);
+    // 文字欄位設成純文字，避免「1/1」被轉成日期
+    HEADERS[name].forEach((h, i) => {
+      if (!["tabelog","tabelogReviews","google","googleReviews","amount","day"].includes(h))
+        sh.getRange(2, i + 1, sh.getMaxRows() - 1, 1).setNumberFormat("@");
+    });
   });
 }
 
@@ -35,9 +40,13 @@ function sheet_(name){
 }
 function rows_(name){
   const sh = sheet_(name);
-  const v = sh.getDataRange().getValues();
-  const head = v.shift() || [];
-  return v.filter(r => r[0] !== "").map(r => Object.fromEntries(head.map((h, i) => [h, r[i]])));
+  const range = sh.getDataRange();
+  const v = range.getValues(), shown = range.getDisplayValues();
+  const head = v.shift() || []; shown.shift();
+  // 試算表自動把「1/1」之類的字轉成日期時，回傳畫面上看到的文字
+  return v.map((r, ri) => r.map((c, ci) => c instanceof Date ? shown[ri][ci] : c))
+          .filter(r => r[0] !== "")
+          .map(r => Object.fromEntries(head.map((h, i) => [h, r[i]])));
 }
 
 function doGet(e){
