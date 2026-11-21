@@ -58,10 +58,13 @@
 
   /* ---------- itinerary state (kanban order) ---------- */
   const ORIG = T.items.map(i => ({...i}));
+  const SLOTS = [["am","☀️ 上午","～11:59"],["pm","🌤️ 下午","12:00–16:59"],["night","🌙 晚上","17:00～"]];
+  function slotOf(time){ const h = parseInt(String(time).slice(0,2), 10); return h < 12 ? "am" : h < 17 ? "pm" : "night"; }
   function loadItems(){
     const saved = store.get("board", null); // {id:{day,order}}
     const items = ORIG.map((i, idx) => ({...i, order: idx}));
-    if (saved) items.forEach(i => { if (saved[i.id]) { i.day = saved[i.id].day; i.order = saved[i.id].order; i.moved = saved[i.id].day !== ORIG.find(o=>o.id===i.id).day; } });
+    items.forEach(i => i.slot = slotOf(i.time));
+    if (saved) items.forEach(i => { if (saved[i.id]) { i.day = saved[i.id].day; i.order = saved[i.id].order; if (saved[i.id].slot) i.slot = saved[i.id].slot; i.moved = saved[i.id].day !== ORIG.find(o=>o.id===i.id).day; } });
     return items;
   }
   let ITEMS = loadItems();
@@ -93,51 +96,46 @@
       T.foliage.map(f => `<tr><td><b>${esc(f.spot)}</b></td><td class="mono">${f.visit}</td><td>${esc(f.status)}</td><td><span class="tag ${V[f.verdict][0]}">${V[f.verdict][1]}</span></td></tr>`).join("");
   }
 
-  /* ---------- itinerary board: one tab per day ---------- */
+  /* ---------- itinerary board: day tabs, each day is a 3-column kanban (上午／下午／晚上) ---------- */
   let boardDay = store.get("boardDay", 1);
-  function cardHTML(i, idx, total){
+  function cardHTML(i){
     const r = rel(i);
     const title = i.link ? `<a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.title)}</a>` : esc(i.title);
     const opts = T.days.map(d => `<option value="${d.id}" ${d.id===i.day?"selected":""}>D${d.id} ${d.date}（${d.dow}）</option>`).join("");
-    return `<li class="tl-item" data-id="${i.id}" style="--dc:var(--d${i.day})">
-      <div class="tl-time">${esc(i.time)}</div>
-      <div class="card cat-${i.cat}${i.moved?" moved":""}" data-id="${i.id}">
-        <div class="top"><h4>${title}</h4><span class="tag t-${i.cat}">${CAT[i.cat]}</span></div>
-        <div class="dist"><span class="arr">${r.arrow}</span>${esc(r.text)}${i.moved?` <span class="tag t-accent">已移動</span>`:""}</div>
-        <div class="more">
-          ${i.transit ? `<div class="tr">🚃 ${esc(i.transit)}</div>` : ""}
-          ${i.note ? `<div>${esc(i.note)}</div>` : ""}
-          <div class="ctrl">
-            <button class="btn ghost sm" data-up="${i.id}" ${idx===0?"disabled":""}>↑ 上移</button>
-            <button class="btn ghost sm" data-down="${i.id}" ${idx===total-1?"disabled":""}>↓ 下移</button>
-            <label class="small muted">移到 <select data-move="${i.id}">${opts}</select></label>
-            <button class="maplink" data-go="${i.id}">在地圖上看</button>
-          </div>
-        </div>
-      </div></li>`;
+    return `<div class="card cat-${i.cat}${i.moved?" moved":""}" data-id="${i.id}" style="--dc:var(--d${i.day})">
+      <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${CAT[i.cat]}</span></div>
+      <h4>${title}</h4>
+      <div class="dist"><span class="arr">${r.arrow}</span>${esc(r.text)}${i.moved?` <span class="tag t-accent">已移動</span>`:""}</div>
+      <div class="more">
+        ${i.transit ? `<div class="tr">🚃 ${esc(i.transit)}</div>` : ""}
+        ${i.note ? `<div>${esc(i.note)}</div>` : ""}
+        <div class="ctrl"><label class="small muted">移到 <select data-move="${i.id}">${opts}</select></label>
+        <button class="maplink" data-go="${i.id}">在地圖上看</button></div>
+      </div></div>`;
   }
   function renderBoard(){
     $("#boardLegend").innerHTML = Object.entries(CAT).map(([k,v]) => `<span><i style="background:var(--c-${k})"></i>${v}</span>`).join("");
     $("#boardTabs").innerHTML = T.days.map(d => `<button role="tab" class="daytab ${d.id===boardDay?"on":""}" data-day="${d.id}" style="--dc:var(--d${d.id})" aria-selected="${d.id===boardDay}">
       <b>D${d.id}</b><span>${d.date}<small>（${d.dow}）</small></span><em>${byDay(d.id).length}</em></button>`).join("");
     const d = T.days.find(x => x.id === boardDay), list = byDay(boardDay);
-    const far = list.length ? list.reduce((m, i) => rel(i).km > rel(m).km ? i : m) : null;
-    $("#board").innerHTML = `<div class="day-panel" style="--dc:var(--d${d.id})">
-      <div class="day-head">
-        <div><span class="kicker">Day ${d.id} · ${d.date}（${d.dow}）</span><h3>${esc(d.title)}</h3></div>
-        <div class="day-meta"><span>${list.length} 個行程點</span>${far?`<span>最遠：${esc(far.title)}（${esc(rel(far).text)}）</span>`:""}
-          <span class="nav-hint">← → 鍵切換天數</span></div>
-      </div>
-      <ol class="timeline" id="tl">${list.map((i, idx) => cardHTML(i, idx, list.length)).join("") || `<li class="muted small" style="padding:20px">這天沒有行程。</li>`}</ol>
-    </div>`;
-    if (window.Sortable && list.length) new Sortable($("#tl"), { animation:150, handle:".card", delay:150, delayOnTouchOnly:true, ghostClass:"sortable-ghost",
-      onEnd: () => { $$("#tl .tl-item").forEach((li, idx) => { ITEMS.find(x => x.id === li.dataset.id).order = idx; }); persist(); } });
+    $("#board").innerHTML = `<div class="day-title" style="--dc:var(--d${d.id})"><b>D${d.id}</b> ${d.date}（${d.dow}）<span>${esc(d.title)}</span><em class="nav-hint">← → 切換天數</em></div>
+      <div class="board3" style="--dc:var(--d${d.id})">${SLOTS.map(([k, label, range]) => {
+        const cards = list.filter(i => i.slot === k);
+        return `<div class="col"><div class="col-head"><div class="d"><span>${label}</span><small>${range}</small><em>${cards.length}</em></div></div>
+          <div class="col-body" data-slot="${k}">${cards.map(cardHTML).join("")}</div></div>`;
+      }).join("")}</div>`;
+    if (window.Sortable) $$("#board .col-body").forEach(el => new Sortable(el, { group:"slots", animation:150, delay:150, delayOnTouchOnly:true, ghostClass:"sortable-ghost", onEnd: saveBoard }));
   }
   function persist(){
     const saved = {};
-    ITEMS.forEach(i => saved[i.id] = { day:i.day, order:i.order });
+    ITEMS.forEach(i => saved[i.id] = { day:i.day, order:i.order, slot:i.slot });
     store.set("board", saved);
     ITEMS = loadItems(); renderBoard(); if (window._map) drawMarkers();
+  }
+  function saveBoard(){
+    let n = 0;
+    $$("#board .col-body").forEach(col => $$(".card", col).forEach(c => { const it = ITEMS.find(x => x.id === c.dataset.id); it.slot = col.dataset.slot; it.order = n++; }));
+    persist();
   }
   function setDay(n){ boardDay = Math.min(8, Math.max(1, n)); store.set("boardDay", boardDay); renderBoard(); }
   $("#boardTabs").addEventListener("click", e => { const b = e.target.closest("[data-day]"); if (b) setDay(+b.dataset.day); });
@@ -149,13 +147,6 @@
   $("#board").addEventListener("click", e => {
     const go = e.target.closest("[data-go]");
     if (go){ e.stopPropagation(); location.hash = "map"; setTimeout(() => focusItem(go.dataset.go), 300); return; }
-    const up = e.target.closest("[data-up]"), down = e.target.closest("[data-down]");
-    if (up || down){
-      const id = (up||down).dataset[up?"up":"down"], list = byDay(boardDay), k = list.findIndex(x => x.id === id), j = up ? k-1 : k+1;
-      if (j < 0 || j >= list.length) return;
-      list.forEach((x, n) => x.order = n); [list[k].order, list[j].order] = [list[j].order, list[k].order];
-      const open = id; persist(); $(`#tl .card[data-id="${open}"]`)?.classList.add("open"); return;
-    }
     if (e.target.closest("a,select,label,button")) return;
     const c = e.target.closest(".card"); if (c) c.classList.toggle("open");
   });

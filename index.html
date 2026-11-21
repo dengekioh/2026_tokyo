@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>2026 東京賞楓之旅</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/style.css?v=202611220016">
 <script>
   // theme: ?theme=indigo|maple overrides the saved choice
   (function(){var q=new URLSearchParams(location.search).get('theme');var s=null;try{s=localStorage.getItem('tk26-theme')}catch(e){}
@@ -62,7 +62,7 @@
     <!-- 01 board -->
     <section class="sec" id="sec-board">
       <div class="sec-head"><span class="sec-n">01</span><h2>行程看板</h2></div>
-      <p class="lede">點上方分頁切換天數（也可以按鍵盤 ← →）。點卡片看交通與備註，裡面可以上移、下移或移到別天；變更只存在這台裝置。卡片下方是離飯店的直線距離與方位。</p>
+      <p class="lede">點 Day 分頁切換天數（鍵盤 ← → 也可以）。每天分成上午／下午／晚上三欄，卡片可以在欄之間拖曳；點卡片看交通與備註，也能移到別天。變更只存在這台裝置。</p>
       <div class="daytabs" id="boardTabs" role="tablist"></div>
       <div class="toolbar" style="margin-top:12px">
         <div class="legend" id="boardLegend"></div>
@@ -228,8 +228,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
-<script src="assets/data.js"></script>
-<script src="assets/tax.js"></script>
-<script src="assets/app.js"></script>
+<script src="assets/data.js?v=202611220016"></script>
+<script src="assets/tax.js?v=202611220016"></script>
+<script src="assets/app.js?v=202611220016"></script>
 </body>
 </html>
