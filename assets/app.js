@@ -141,9 +141,10 @@
     if (map){ setTimeout(() => map.invalidateSize(), 50); return; }
     if (!window.L) { $("#map").textContent = "地圖載入失敗（需要網路）"; return; }
     map = window._map = L.map("map", { zoomControl:true }).setView([T.hotel.lat, T.hotel.lng], 11);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      maxZoom:19, subdomains:"abcd", attribution:'&copy; OpenStreetMap &copy; CARTO'
-    }).addTo(map);
+    // Esri light-gray canvas: no API key, works from file:// and GitHub Pages
+    const esri = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/";
+    L.tileLayer(esri + "World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { maxZoom:16, attribution:"Tiles &copy; Esri &mdash; Esri, HERE, Garmin, &copy; OpenStreetMap contributors" }).addTo(map);
+    L.tileLayer(esri + "World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom:16 }).addTo(map);
     layer = L.layerGroup().addTo(map);
     $("#mapDays").innerHTML = `<button class="chip on" data-d="0">全部</button>` +
       T.days.map(d => `<button class="chip daychip" data-d="${d.id}" style="--dc:var(--d${d.id})">D${d.id} ${d.date}</button>`).join("");
