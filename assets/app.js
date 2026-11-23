@@ -48,12 +48,12 @@
   $("#ver").textContent = "行程 " + T.version;
 
   /* ---------- router ---------- */
-  const SECS = ["overview","board","map","events","food","todo","stay","tax","expense"];
+  const SECS = ["overview","board","map","events","food","todo","stay","tax","pack","expense"];
   function show(id){
     if (!SECS.includes(id)) id = "overview";
     $$(".sec").forEach(s => s.classList.toggle("on", s.id === "sec-"+id));
     $$("[data-sec]").forEach(a => a.classList.toggle("on", a.dataset.sec === id));
-    const NAMES = { overview:"總覽", board:"行程看板", map:"地圖", events:"點燈・聖誕・紅葉", food:"餐廳", todo:"預約待辦", stay:"住宿・航班", tax:"退稅新制", expense:"消費表" };
+    const NAMES = { overview:"總覽", board:"行程看板", map:"地圖", events:"點燈・聖誕・紅葉", food:"餐廳", todo:"預約待辦", stay:"住宿・航班", tax:"退稅新制", pack:"攜帶物品", expense:"消費表" };
     $("#mSec").textContent = NAMES[id];
     sheet(false);
     if (id === "map") initMap();
@@ -70,7 +70,7 @@
   const SLOTS = [["am","☀️ 上午","～11:59"],["pm","🌤️ 下午","12:00–16:59"],["night","🌙 晚上","17:00～"]];
   function slotOf(time){ const h = parseInt(String(time).slice(0,2), 10); return h < 12 ? "am" : h < 17 ? "pm" : "night"; }
   function loadItems(){
-    const saved = store.get("board", null); // {id:{day,order}}
+    const saved = store.get("board35", null); // {id:{day,order}}
     const items = ORIG.map((i, idx) => ({...i, order: idx}));
     items.forEach(i => i.slot = slotOf(i.time));
     if (saved) items.forEach(i => { if (saved[i.id]) { i.day = saved[i.id].day; i.order = saved[i.id].order; if (saved[i.id].slot) i.slot = saved[i.id].slot; i.moved = saved[i.id].day !== ORIG.find(o=>o.id===i.id).day; } });
@@ -84,19 +84,19 @@
     const start = new Date("2026-11-28T20:55:00+08:00");
     const days = Math.ceil((start - new Date())/86400000);
     const lights = T.items.filter(i => i.cat === "light").length;
-    const spend = T.budget.reduce((s,b) => s+b.amount, 0) + T.lodging;
     $("#ovStats").innerHTML = [
       ["出發倒數", days > 0 ? days + " 天" : "旅途中", true],
       ["行程點", T.items.length + " 個", false],
       ["點燈・夜景", lights + " 場", false],
-      ["總預估（含住宿）", yen(spend), false]
+      ["日落", "16:28", false]
     ].map(([k,v,a]) => `<div class="stat"><div class="k">${k}</div><div class="v ${a?"accent":""}">${v}</div></div>`).join("");
     const must = [
       ["11/29","神宮外苑點燈最後一晚 16:30–19:30"],
       ["11/29","都廳投影：19:00 哥吉拉、19:30 寶可夢 TCG"],
-      ["11/29 12:00","手機搶琥珀 12/5 12:00"],
-      ["12/01","光之森林 19:00（預購）"],
-      ["12/03","紅磚倉庫寶可夢燈飾＋市役所寶可夢郵筒"],
+      ["11/26 12:00","RAMEN MATSUI 開放預約（11/29 午餐）"],
+      ["12/01","Cris 13:25 抵達成田，17:30 六本木會合 ➔ 光之森林 19:00"],
+      ["12/02","PokéPark KANTO 11:00 ➔ 18:00 六義園會合"],
+      ["12/03","橫濱 5 個寶可夢井蓋＋郵筒＋紅磚寶可夢燈飾"],
       ["12/05","18:00 YOASOBI 東京巨蛋"]
     ];
     $("#ovMust").innerHTML = must.map(([d,t]) => `<li><span class="tag t-accent">${d}</span><span class="txt">${esc(t)}</span></li>`).join("");
@@ -117,7 +117,7 @@
     const title = i.link ? `<a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.title)}</a>` : esc(i.title);
     const opts = T.days.map(d => `<option value="${d.id}" ${d.id===i.day?"selected":""}>D${d.id} ${d.date}（${d.dow}）</option>`).join("");
     return `<div class="card cat-${i.cat}${i.moved?" moved":""}" data-id="${i.id}" style="--dc:var(--d${i.day})">
-      <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${CAT[i.cat]}</span></div>
+      <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${CAT[i.cat]}</span>${i.who?`<span class="tag t-who">${esc(i.who)}</span>`:""}</div>
       <h4>${title}</h4>
       <div class="dist"><span class="arr">${r.arrow}</span>${esc(r.text)}${i.moved?` <span class="tag t-accent">已移動</span>`:""}</div>
       <div class="more">
@@ -135,6 +135,7 @@
     $(".daytab.on")?.scrollIntoView({ block:"nearest", inline:"center", behavior:"smooth" });
     const d = T.days.find(x => x.id === boardDay), list = byDay(boardDay);
     $("#board").innerHTML = `<div class="day-title" style="--dc:var(--d${d.id})"><b>D${d.id}</b> ${d.date}（${d.dow}）<span>${esc(d.title)}</span><em class="nav-hint">← → 切換天數</em></div>
+      <div class="day-meta"><span class="sun">🌅 日出 <b>${d.sun[0]}</b></span><span class="sun">🌇 日落 <b>${d.sun[1]}</b></span><span class="who">👤 ${esc(d.who)}</span></div>
       <div class="board3" style="--dc:var(--d${d.id})">${SLOTS.map(([k, label, range]) => {
         const cards = list.filter(i => i.slot === k);
         return `<div class="col"><div class="col-head"><div class="d"><span>${label}</span><small>${range}</small><em>${cards.length}</em></div></div>
@@ -145,7 +146,7 @@
   function persist(){
     const saved = {};
     ITEMS.forEach(i => saved[i.id] = { day:i.day, order:i.order, slot:i.slot });
-    store.set("board", saved);
+    store.set("board35", saved);
     ITEMS = loadItems(); renderBoard(); if (window._map) drawMarkers();
   }
   function saveBoard(){
@@ -181,7 +182,7 @@
     it.day = to; it.order = Math.max(-1, ...byDay(to).filter(x => x !== it).map(x => x.order)) + 1;
     persist();
   });
-  $("#boardReset").addEventListener("click", () => { store.del("board"); ITEMS = loadItems(); renderBoard(); if (window._map) drawMarkers(); });
+  $("#boardReset").addEventListener("click", () => { store.del("board35"); ITEMS = loadItems(); renderBoard(); if (window._map) drawMarkers(); });
 
   /* ---------- map ---------- */
   let map, layer, mapDay = 0, markerById = {};
@@ -358,21 +359,19 @@
   }
   function renderExp(){
     const total = EXP.reduce((s,e) => s+e.amount, 0);
-    const budget = T.budget.reduce((s,b) => s+b.amount, 0);
     const twd = v => fx() ? ` ≈ NT$${Math.round(v*fx()).toLocaleString()}` : "";
+    const today = tripDayToday(), todaySum = EXP.filter(e => e.day === today).reduce((s,e) => s+e.amount, 0);
+    const cash = EXP.filter(e => e.pay === "現金").reduce((s,e) => s+e.amount, 0);
     $("#expStats").innerHTML = [
       ["已花費", yen(total), twd(total)],
-      ["行程預算（不含住宿）", yen(budget), twd(budget)],
-      ["剩餘", yen(budget-total), ""],
-      ["住宿（已付）", yen(T.lodging), twd(T.lodging)]
+      [today ? `今天（D${today}）` : "今天", yen(todaySum), twd(todaySum)],
+      ["現金支出", yen(cash), twd(cash)],
+      ["筆數", EXP.length + " 筆", ""]
     ].map(([k,v,s]) => `<div class="stat"><div class="k">${k}</div><div class="v">${v}</div><div class="small muted">${s}</div></div>`).join("");
-    $("#expDays").innerHTML = T.budget.map(b => {
-      const d = T.days.find(x => x.id === b.day);
-      const spent = EXP.filter(e => e.day === b.day).reduce((s,e) => s+e.amount, 0);
-      const pct = Math.min(100, b.amount ? spent/b.amount*100 : 0);
-      return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px"><span><b>D${b.day}</b> ${d.date}</span><span class="mono">${yen(spent)} / ${yen(b.amount)}</span></div>
-        <div class="bar"><i class="${spent>b.amount?"over":""}" style="width:${pct}%"></i></div></div>`;
-    }).join("");
+    const perDay = T.days.map(d => ({ d, v: EXP.filter(e => e.day === d.id).reduce((s,e) => s+e.amount, 0) }));
+    const dmax = Math.max(1, ...perDay.map(x => x.v));
+    $("#expDays").innerHTML = perDay.map(({d, v}) => `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px"><span><b>D${d.id}</b> ${d.date}</span><span class="mono">${yen(v)}${twd(v)}</span></div>
+        <div class="bar"><i style="width:${v/dmax*100}%;background:var(--d${d.id})"></i></div></div>`).join("");
     const cats = {};
     EXP.forEach(e => cats[e.cat] = (cats[e.cat]||0) + e.amount);
     const max = Math.max(1, ...Object.values(cats));
@@ -408,18 +407,90 @@
     const c = Sheet.cfg(); const f = $("#sheetForm");
     const el = f.elements;
     if (c){ el.url.value = c.url || ""; el.token.value = c.token || ""; }
-    f.addEventListener("submit", e => { e.preventDefault(); store.set("sheet", { url:el.url.value.trim(), token:el.token.value }); loadFood(); loadExp(); });
-    $("#sheetClear").addEventListener("click", () => { store.del("sheet"); f.reset(); loadFood(); loadExp(); });
+    f.addEventListener("submit", e => { e.preventDefault(); store.set("sheet", { url:el.url.value.trim(), token:el.token.value }); loadFood(); loadExp(); loadPack(); });
+    $("#sheetClear").addEventListener("click", () => { store.del("sheet"); f.reset(); loadFood(); loadExp(); loadPack(); });
     $("#sheetSeed").addEventListener("click", async () => {
       if (!Sheet.on()) { alert("請先儲存 Web App 網址與通行碼。"); return; }
       if (!confirm("把預設的餐廳清單寫入試算表（只會在 restaurants 分頁是空的時候寫入）？")) return;
       try { const r = await Sheet.post({ action:"seed", sheet:"restaurants", rows: T.restaurants.map(x => ({ id: uid(), ...x })) }); alert(r.written ? `已寫入 ${r.written} 筆。` : "試算表已有資料，沒有寫入。"); loadFood(); }
       catch(err){ alert("寫入失敗：" + err.message); }
     });
+    $("#sheetMerge").addEventListener("click", async () => {
+      if (!Sheet.on()) { alert("請先儲存 Web App 網址與通行碼。"); return; }
+      if (!confirm("把這一版行程的餐廳合併進試算表？\n・試算表沒有的店會新增\n・已經有的店只更新「排在」欄位")) return;
+      try { const r = await Sheet.post({ action:"merge", sheet:"restaurants", key:"name", fields:["day"], rows: T.restaurants.map(x => ({ id: uid(), ...x })) }); alert(`新增 ${r.added} 家、更新 ${r.updated} 家。`); loadFood(); }
+      catch(err){ alert("合併失敗：" + errText(err)); }
+    });
   })();
+
+  /* ---------- packing list (Charles / Cris) ---------- */
+  let PACK = [];
+  function defaultPack(){
+    const P = T.packing, rows = [];
+    P.people.forEach(person => {
+      P.common.concat(P.extra[person] || []).forEach((item, n) => rows.push({ id: uid(), person, item, checked:false, note: P.notes[item] || "", order: n }));
+    });
+    return rows;
+  }
+  const truthy = v => v === true || v === "TRUE" || v === "true" || v === 1 || v === "1";
+  async function loadPack(){
+    if (Sheet.on()){
+      setSync($("#packSync"), "busy", "同步中…");
+      try {
+        let rows = await Sheet.list("packing");
+        if (!rows.length){ await Sheet.post({ action:"seed", sheet:"packing", rows: defaultPack() }); rows = await Sheet.list("packing"); }
+        PACK = rows.map(r => ({ ...r, checked: truthy(r.checked), order: Number(r.order) || 0 }));
+        setSync($("#packSync"), "ok", "已連線 Google Sheet");
+      } catch(e){ console.error("[tk26] packing", e); PACK = store.get("pack", null) || defaultPack(); setSync($("#packSync"), "err", "連線失敗：" + errText(e)); }
+    } else { PACK = store.get("pack", null) || defaultPack(); setSync($("#packSync"), "", "本機模式"); }
+    renderPack();
+  }
+  function renderPack(){
+    $("#packCols").innerHTML = T.packing.people.map(person => {
+      const list = PACK.filter(r => r.person === person).sort((a,b) => a.order - b.order || String(a.item).localeCompare(String(b.item)));
+      const done = list.filter(r => r.checked).length;
+      return `<div class="panel pack-col" data-person="${esc(person)}">
+        <div class="pack-head"><h3>${esc(person)}</h3><span class="tag ${done===list.length&&list.length?"t-ok":"t-accent"}">${done} / ${list.length}</span></div>
+        <div class="bar"><i style="width:${list.length?done/list.length*100:0}%"></i></div>
+        <ul class="todo pack">${list.map(r => `<li class="${r.checked?"done":""}"><label><input type="checkbox" data-pid="${esc(r.id)}" ${r.checked?"checked":""}><span class="txt">${esc(r.item)}${r.note?`<small class="muted"> · ${esc(r.note)}</small>`:""}</span></label><button class="x" data-pdel="${esc(r.id)}" aria-label="刪除">×</button></li>`).join("")}</ul>
+        <form class="pack-add" data-person="${esc(person)}"><input name="item" placeholder="新增項目" required><button class="btn sm" type="submit">＋</button></form>
+      </div>`;
+    }).join("");
+  }
+  async function packSave(action, payload){
+    if (!Sheet.on()){ store.set("pack", PACK); return; }
+    try { await Sheet.post({ sheet:"packing", action, ...payload }); setSync($("#packSync"), "ok", "已同步"); }
+    catch(e){ setSync($("#packSync"), "err", "同步失敗：" + errText(e)); }
+  }
+  $("#packCols").addEventListener("change", e => {
+    const id = e.target.dataset.pid; if (!id) return;
+    const r = PACK.find(x => x.id === id); if (!r) return;
+    r.checked = e.target.checked; renderPack();
+    packSave("update", { id, row:{ checked: r.checked } });
+  });
+  $("#packCols").addEventListener("click", e => {
+    const b = e.target.closest("[data-pdel]"); if (!b) return;
+    const r = PACK.find(x => x.id === b.dataset.pdel); if (!r || !confirm(`刪除「${r.item}」？`)) return;
+    PACK = PACK.filter(x => x !== r); renderPack();
+    packSave("delete", { id: r.id });
+  });
+  $("#packCols").addEventListener("submit", e => {
+    const f = e.target.closest(".pack-add"); if (!f) return;
+    e.preventDefault();
+    const item = f.elements.item.value.trim(); if (!item) return;
+    const person = f.dataset.person;
+    const row = { id: uid(), person, item, checked:false, note:"", order: Math.max(-1, ...PACK.filter(r => r.person === person).map(r => r.order)) + 1 };
+    PACK.push(row); renderPack();
+    packSave("add", { row });
+  });
+  $("#packReset").addEventListener("click", () => {
+    if (!confirm("把所有勾選清掉？")) return;
+    PACK.filter(r => r.checked).forEach(r => { r.checked = false; packSave("update", { id:r.id, row:{ checked:false } }); });
+    renderPack(); if (!Sheet.on()) store.set("pack", PACK);
+  });
 
   /* ---------- boot ---------- */
   renderOverview(); renderBoard(); renderEvents(); renderTodo(); renderTax();
-  loadFood(); loadExp();
+  loadFood(); loadExp(); loadPack();
   show(location.hash.slice(1));
 })();
