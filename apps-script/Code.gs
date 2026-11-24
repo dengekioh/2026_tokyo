@@ -8,14 +8,17 @@
  * 4. 「部署 → 管理部署作業 → 編輯 → 版本：新版本 → 部署」（網址不變）。
  *    第一次部署：「部署 → 新增部署作業 → 網頁應用程式」：執行身分＝我，存取權＝所有人。
  * 5. 把 …/exec 網址和通行碼，貼到網站「消費表 → Google Sheet 同步設定」。
+ * 6. 紅葉自動更新：執行一次 installTrigger()（第一次會要求「連線到外部服務」的授權），
+ *    之後每 6 小時自動抓 tenki.jp 寫入 foliage 分頁。要停用就執行 removeTrigger()。
  */
 const HEADERS = {
   restaurants: ["id","name","type","tabelog","tabelogReviews","google","googleReviews","area","closed","reserve","day","url"],
   expenses:    ["id","day","cat","item","amount","pay","note","created"],
-  packing:     ["id","person","item","checked","note","order"]
+  packing:     ["id","person","item","checked","note","order"],
+  foliage:     ["id","name","url","status","desc","forecast","asOf","fetched","ok"]
 };
 // 這些欄位保持數字／布林，其餘一律設成純文字（避免「1/1」被轉成日期）
-const NON_TEXT = ["tabelog","tabelogReviews","google","googleReviews","amount","day","checked","order"];
+const NON_TEXT = ["tabelog","tabelogReviews","google","googleReviews","amount","day","checked","order","ok"];
 
 function setup(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -119,4 +122,55 @@ function doPost(e){
     return json_({ ok:false, error:"unknown action" });
   } catch (err) { return json_({ ok:false, error:String(err.message || err) }); }
   finally { lock.releaseLock(); }
+}
+
+/* ---------- 紅葉：tenki.jp 每 6 小時更新（只寫進這份試算表，網站要通行碼才讀得到） ---------- */
+const FOLIAGE_SPOTS = [
+  ["3/16/30688", "明治神宮外苑"], ["3/16/30117", "光が丘公園"], ["3/16/34655", "高尾山"],
+  ["3/16/32202", "井の頭恩賜公園"], ["3/16/32201", "上野恩賜公園"], ["3/16/34671", "靖国神社"],
+  ["3/16/30125", "六義園"], ["3/17/34666", "三溪園"], ["3/16/30157", "芝公園"],
+  ["3/16/34670", "日比谷公園"], ["3/16/30119", "小石川後楽園"]
+];
+function strip_(h){ return String(h || "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim(); }
+function parseTenki_(html){
+  const pick = re => { const m = html.match(re); return m ? strip_(m[1]) : ""; };
+  return {
+    status:   pick(/class="rank-telop">([\s\S]*?)<\/span>/),
+    desc:     pick(/class="rank-telop-status">([\s\S]*?)<\/p>/),
+    forecast: pick(/今年の見頃予想<\/p>\s*<p class="date">([\s\S]*?)<\/p>/),
+    asOf:     pick(/※([0-9]+日)現在の情報/)
+  };
+}
+function updateFoliage(){
+  const sh = sheet_("foliage"), head = HEADERS.foliage;
+  const old = {}; rows_("foliage").forEach(r => old[r.id] = r);
+  const now = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy-MM-dd HH:mm");
+  const out = FOLIAGE_SPOTS.map(([id, name]) => {
+    const url = "https://tenki.jp/kouyou/" + id + ".html";
+    let row = { id, name, url, status:"", desc:"", forecast:"", asOf:"", fetched: now, ok:false };
+    try {
+      const res = UrlFetchApp.fetch(url, { muteHttpExceptions:true, followRedirects:true, headers:{ "User-Agent":"Mozilla/5.0" } });
+      if (res.getResponseCode() === 200){
+        const p = parseTenki_(res.getContentText("UTF-8"));
+        if (p.status) row = Object.assign(row, p, { ok:true });
+      }
+    } catch (e) {}
+    // 抓失敗時保留上一次成功的資料，只更新 fetched／ok
+    if (!row.ok && old[id] && old[id].status) row = Object.assign({}, old[id], { fetched: now, ok:false });
+    Utilities.sleep(500);
+    return head.map(h => row[h] ?? "");
+  });
+  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  try {
+    if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, head.length).clearContent();
+    sh.getRange(2, 1, out.length, head.length).setValues(out);
+  } finally { lock.releaseLock(); }
+}
+function installTrigger(){
+  removeTrigger();
+  ScriptApp.newTrigger("updateFoliage").timeBased().everyHours(6).create();
+  updateFoliage();
+}
+function removeTrigger(){
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === "updateFoliage").forEach(t => ScriptApp.deleteTrigger(t));
 }

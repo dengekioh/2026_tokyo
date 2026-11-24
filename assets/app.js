@@ -84,6 +84,73 @@
   const visible = i => !i.plan || planOf(origDay(i.id)) === i.plan;
   const byDay = d => ITEMS.filter(i => i.day === d && visible(i)).sort((a,b) => a.order - b.order);
 
+  /* ---------- 紅葉即時（tenki.jp → Apps Script → foliage 分頁，要通行碼） ---------- */
+  let FOL = {}, folFetched = "";
+  const folTag = st => /見頃/.test(st) ? "t-ok" : /色あせ|落葉/.test(st) ? "t-stop" : "t-warn";
+  async function loadFoliage(){
+    FOL = {}; folFetched = "";
+    if (Sheet.on()){
+      try { (await Sheet.list("foliage")).forEach(r => { FOL[String(r.id)] = r; if (r.fetched > folFetched) folFetched = String(r.fetched); }); }
+      catch(e){ console.warn("[tk26] foliage", e); }
+    }
+    renderOverview(); renderBoard();
+  }
+
+  /* ---------- 天氣（氣象廳 bosai JSON，瀏覽器直接讀，6 小時快取） ---------- */
+  const WX = {};
+  async function loadWeather(){
+    const codes = [...new Set([T.weather.default, ...Object.values(T.weather.byDay)])];
+    await Promise.all(codes.map(async c => {
+      const k = "wx-" + c, cached = store.get(k, null);
+      if (cached && Date.now() - cached.t < 6*3600e3){ WX[c] = cached.d; return; }
+      try {
+        const r = await fetch(`https://www.jma.go.jp/bosai/forecast/data/forecast/${c}.json`);
+        const d = await r.json(); WX[c] = d; store.set(k, { t: Date.now(), d });
+      } catch(e){ console.warn("[tk26] weather", e); if (cached) WX[c] = cached.d; }
+    }));
+    renderBoard();
+  }
+  const wxIcon = code => ({ 1:"☀️", 2:"☁️", 3:"🌧️", 4:"❄️" })[String(code || "").charAt(0)] || "🌤️";
+  function wxFor(day){
+    const code = T.weather.byDay[day.id] || T.weather.default, d = WX[code];
+    if (!d) return null;
+    const iso = "2026-" + day.date.replace("/", "-");
+    const out = { code, report: "" };
+    try {
+      const s0 = d[0].timeSeries[0], i = s0.timeDefines.findIndex(t => t.startsWith(iso));
+      if (i >= 0){ out.text = s0.areas[0].weathers[i].replace(/　+/g, " "); out.wcode = s0.areas[0].weatherCodes[i]; out.report = d[0].reportDatetime; }
+      const s1 = d[0].timeSeries[1];
+      const pops = s1.timeDefines.map((t, n) => [t, s1.areas[0].pops[n]]).filter(([t]) => t.startsWith(iso));
+      if (pops.length) out.pops6 = pops.map(([t, p]) => { const h = +t.slice(11,13); return `${h}–${h+6}時 ${p}%`; });
+      const s2 = d[0].timeSeries[2];
+      if (s2){ const tt = s2.timeDefines.map((t, n) => [t, s2.areas[0].temps[n]]).filter(([t]) => t.startsWith(iso)).map(x => +x[1]);
+        if (tt.length === 2 && tt[0] !== tt[1]){ out.min = Math.min(...tt); out.max = Math.max(...tt); } }
+      const w0 = d[1].timeSeries[0], j = w0.timeDefines.findIndex(t => t.startsWith(iso));
+      if (j >= 0){
+        const a = w0.areas[0], tm = d[1].timeSeries[1].areas[0];
+        out.wcode = out.wcode || a.weatherCodes[j];
+        if (a.pops[j] !== "" && a.pops[j] != null) out.pop = a.pops[j];
+        if (a.reliabilities && a.reliabilities[j]) out.rel = a.reliabilities[j];
+        if (out.min == null && tm.tempsMin[j] !== "") out.min = tm.tempsMin[j];
+        if (out.max == null && tm.tempsMax[j] !== "") out.max = tm.tempsMax[j];
+        if (!out.report) out.report = d[1].reportDatetime;
+      }
+    } catch(e){ console.warn("[tk26] wx parse", e); }
+    out.none = !out.wcode;
+    return out;
+  }
+  function wxHTML(day){
+    const w = wxFor(day);
+    if (!w) return `<span class="wx muted">🌤️ 天氣載入中…</span>`;
+    const url = `https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=${w.code}`;
+    if (w.none) return `<span class="wx muted">🌤️ 尚無預報（約 7 天前開始有）· <a href="${url}" target="_blank" rel="noopener">氣象廳</a></span>`;
+    const temp = w.min != null || w.max != null ? ` · 🌡 ${w.min ?? "—"}–${w.max ?? "—"}°C` : "";
+    const pop = w.pops6 ? ` · ☔ ${w.pops6.join("／")}` : w.pop != null ? ` · ☔ ${w.pop}%` : "";
+    const rel = w.rel ? `（可信度 ${w.rel}）` : "";
+    const when = w.report ? w.report.slice(5,16).replace("T"," ").replace("-","/") : "";
+    return `<span class="wx">${wxIcon(w.wcode)} <b>${esc(w.text || "週間預報")}</b>${temp}${pop}${rel} · <a href="${url}" target="_blank" rel="noopener">氣象廳 ${when} 發表</a></span>`;
+  }
+
   /* ---------- overview ---------- */
   function renderOverview(){
     const start = new Date("2026-11-28T20:55:00+08:00");
@@ -107,8 +174,16 @@
     ];
     $("#ovMust").innerHTML = must.map(([d,t]) => `<li><span class="tag t-accent">${d}</span><span class="txt">${esc(t)}</span></li>`).join("");
     const V = { ok:["t-ok","可以"], warn:["t-warn","偏晚／未確認"], stop:["t-stop","已過"] };
-    $("#ovFoliage").innerHTML = `<tr><th>地點</th><th>你去</th><th>現況</th><th></th></tr>` +
-      T.foliage.map(f => `<tr><td><b>${esc(f.spot)}</b></td><td class="mono">${f.visit}</td><td>${esc(f.status)}</td><td><span class="tag ${V[f.verdict][0]}">${V[f.verdict][1]}</span></td></tr>`).join("");
+    const live = f => {
+      if (!f.tenki) return f.more ? `<a href="${esc(f.more)}" target="_blank" rel="noopener">官網 ↗</a>` : `<span class="muted">無自動資料</span>`;
+      const url = `https://tenki.jp/kouyou/${f.tenki}.html`, r = FOL[f.tenki];
+      if (r && r.status) return `<a href="${esc(url)}" target="_blank" rel="noopener"><span class="tag ${folTag(r.status)}">🍁 ${esc(r.status)}</span></a><br><small class="muted">${esc(r.asOf)}現在・預測 ${esc(r.forecast)}</small>`;
+      return `<a href="${esc(url)}" target="_blank" rel="noopener">tenki.jp ↗</a><br><small class="muted">${Sheet.on() ? "尚無資料（執行 installTrigger）" : "輸入通行碼後顯示即時"}</small>`;
+    };
+    $("#ovFoliage").innerHTML = `<tr><th>地點</th><th>你去</th><th>手動查詢</th><th>tenki.jp 即時</th><th></th></tr>` +
+      T.foliage.map(f => `<tr><td><b>${esc(f.spot)}</b></td><td class="mono" data-l="你去">${f.visit}</td><td data-l="手動查詢">${esc(f.status)}</td><td data-l="tenki.jp">${live(f)}</td><td><span class="tag ${V[f.verdict][0]}">${V[f.verdict][1]}</span></td></tr>`).join("");
+    $("#ovFolNote").innerHTML = `手動查詢：11/21–24。即時：tenki.jp，Apps Script 每 6 小時更新${folFetched ? `（最後抓取 ${esc(folFetched)}）` : ""}。其他：` +
+      T.foliageLinks.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)}</a>`).join("・");
   }
 
   /* ---------- itinerary board: day tabs, each day is a 3-column kanban (上午／下午／晚上) ---------- */
@@ -127,6 +202,7 @@
     return `<div class="card cat-${i.cat}${i.moved?" moved":""}" data-id="${i.id}" style="--dc:var(--d${i.day})">
       <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${CAT[i.cat]}</span>${i.who?`<span class="tag t-who">${esc(i.who)}</span>`:""}${planTag}</div>
       <h4>${title}</h4>
+      ${i.tenki && FOL[i.tenki]?.status ? `<a class="fol tag ${folTag(FOL[i.tenki].status)}" href="https://tenki.jp/kouyou/${esc(i.tenki)}.html" target="_blank" rel="noopener">🍁 ${esc(FOL[i.tenki].status)}（${esc(FOL[i.tenki].asOf)}）</a>` : ""}
       ${i.ticket ? `<a class="tix" href="${esc(i.ticket)}" target="_blank" rel="noopener">🎟 要先買票 · 官網</a>` : ""}
       <div class="dist"><span class="arr">${r.arrow}</span>${esc(r.text)}${i.moved?` <span class="tag t-accent">已移動</span>`:""}</div>
       <div class="more">
@@ -144,7 +220,7 @@
     $(".daytab.on")?.scrollIntoView({ block:"nearest", inline:"center", behavior:"smooth" });
     const d = T.days.find(x => x.id === boardDay), list = byDay(boardDay);
     $("#board").innerHTML = `<div class="day-title" style="--dc:var(--d${d.id})"><b>D${d.id}</b> ${d.date}（${d.dow}）<span>${esc(d.title)}</span><em class="nav-hint">← → 切換天數</em></div>
-      <div class="day-meta"><span class="sun">🌅 日出 <b>${d.sun[0]}</b></span><span class="sun">🌇 日落 <b>${d.sun[1]}</b></span><span class="who">👤 ${esc(d.who)}</span></div>
+      <div class="day-meta"><span class="sun">🌅 日出 <b>${d.sun[0]}</b></span><span class="sun">🌇 日落 <b>${d.sun[1]}</b></span><span class="who">👤 ${esc(d.who)}</span>${wxHTML(d)}</div>
       ${d.plans ? `<div class="plan-tabs" role="tablist" aria-label="版本">${d.plans.map(p => `<button role="tab" class="plan-tab ${planOf(d.id)===p.key?"on":""}" data-plan="${p.key}" aria-selected="${planOf(d.id)===p.key}"><b>${esc(p.label)}</b><span>${esc(p.desc)}</span></button>`).join("")}<small class="muted">只顯示所選版本；標「限定」的是兩版不同的地方</small></div>` : ""}
       <div class="board3" style="--dc:var(--d${d.id})">${SLOTS.map(([k, label, range]) => {
         const cards = list.filter(i => i.slot === k);
@@ -419,8 +495,8 @@
     const c = Sheet.cfg(); const f = $("#sheetForm");
     const el = f.elements;
     if (c){ el.url.value = c.url || ""; el.token.value = c.token || ""; }
-    f.addEventListener("submit", e => { e.preventDefault(); store.set("sheet", { url:el.url.value.trim(), token:el.token.value }); loadFood(); loadExp(); loadPack(); });
-    $("#sheetClear").addEventListener("click", () => { store.del("sheet"); f.reset(); loadFood(); loadExp(); loadPack(); });
+    f.addEventListener("submit", e => { e.preventDefault(); store.set("sheet", { url:el.url.value.trim(), token:el.token.value }); loadFood(); loadExp(); loadPack(); loadFoliage(); });
+    $("#sheetClear").addEventListener("click", () => { store.del("sheet"); f.reset(); loadFood(); loadExp(); loadPack(); loadFoliage(); });
     $("#sheetSeed").addEventListener("click", async () => {
       if (!Sheet.on()) { alert("請先儲存 Web App 網址與通行碼。"); return; }
       if (!confirm("把預設的餐廳清單寫入試算表（只會在 restaurants 分頁是空的時候寫入）？")) return;
@@ -503,6 +579,6 @@
 
   /* ---------- boot ---------- */
   renderOverview(); renderBoard(); renderEvents(); renderTodo(); renderTax();
-  loadFood(); loadExp(); loadPack();
+  loadFood(); loadExp(); loadPack(); loadFoliage(); loadWeather();
   show(location.hash.slice(1));
 })();

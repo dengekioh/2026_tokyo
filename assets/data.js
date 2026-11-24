@@ -1,6 +1,6 @@
-/* 2026 Tokyo trip data — source of truth: ../2026_Tokyo_itinerary_v3.md (v3.6, 2026-11-24) */
+/* 2026 Tokyo trip data — source of truth: ../2026_Tokyo_itinerary_v3.md (v3.7, 2026-11-24) */
 window.TRIP = {
-  version: "v3.6 · 2026-11-24",
+  version: "v3.7 · 2026-11-24",
   hotel: { name: "品川王子大飯店", lat: 35.6280, lng: 139.7365 },
 
   /* sun: 國立天文台 暦計算室（東京；12/3 為橫濱） who: 當天成員 */
@@ -12,7 +12,7 @@ window.TRIP = {
     { id: 5, date: "12/03", dow: "四", sun: ["06:33","16:29"], who: "👫", title: "橫濱：三溪園・波靈橋・寶可夢井蓋・紅磚聖誕" },
     { id: 6, date: "12/04", dow: "五", sun: ["06:34","16:28"], who: "👫", title: "銅鑼燒・三囲・魚政 ➔ 下午兩案",
       plans: [ { key: "A", label: "A'", desc: "芝公園・東京鐵塔・聖誕市集" }, { key: "B", label: "B", desc: "晴空塔・竹燈祭・みつヰ" } ] },
-    { id: 7, date: "12/05", dow: "六", sun: ["06:35","16:28"], who: "👫 ➔ 晚上各自", title: "九品佛・日比谷公園・Bic・午餐（選配）・小石川・YOASOBI" },
+    { id: 7, date: "12/05", dow: "六", sun: ["06:35","16:28"], who: "👫 ➔ 晚上各自", title: "九品佛・日比谷公園・國會議事堂・Bic・午餐（選配）・小石川・YOASOBI" },
     { id: 8, date: "12/06", dow: "日", sun: ["06:36","16:28"], who: "👫", title: "N'EX ➔ 成田 ➔ 返台" }
   ],
 
@@ -20,29 +20,29 @@ window.TRIP = {
   items: [
     // Day 1 — Charles
     { id: "d1-01", day: 1, time: "00:50", title: "羽田 T3 ➔ NODOKA 休息淋浴", cat: "move", lat: 35.5494, lng: 139.7798, note: "PP／JCB 白金免費 3 小時。05:15 京急首班車到品川，寄放行李。" },
-    { id: "d1-02", day: 1, time: "06:20", title: "明治神宮外苑銀杏大道・清晨", cat: "sight", lat: 35.6748, lng: 139.7177, note: "日出 06:30。11/20 見頃 7–8 成，12/2 起落葉。", transit: "品川 ➔ 外苑前" },
+    { id: "d1-02", day: 1, time: "06:20", title: "明治神宮外苑銀杏大道・清晨", cat: "sight", lat: 35.6748, lng: 139.7177, note: "日出 06:30。11/20 見頃 7–8 成，12/2 起落葉。", transit: "品川 ➔ 外苑前", tenki: "3/16/30688" },
     { id: "d1-03", day: 1, time: "07:30", title: "走到千駄ヶ谷（經國立競技場）", cat: "sight", lat: 35.6812, lng: 139.7115, note: "約 15–20 分鐘，用走的比繞信濃町好。", transit: "千駄ヶ谷 ➔ 總武線 ➔ 四ツ谷 ➔ 中央線快速 ➔ 東京" },
     { id: "d1-04", day: 1, time: "08:20", title: "早餐：アロマ珈琲 八重洲店", cat: "food", lat: 35.6800, lng: 139.7690, note: "週日 07:30 開，早餐套餐 ¥700，只收現金。", link: "https://tabelog.com/tokyo/A1302/A130201/13045029/" },
     { id: "d1-05", day: 1, time: "09:05", title: "東京車站丸之內站舍＋行幸通銀杏", cat: "sight", lat: 35.6812, lng: 139.7649, note: "早上站舍正面逆光，從行幸通斜拍。" },
     { id: "d1-06", day: 1, time: "09:45", title: "傳說寶可夢雕像（展期最後一天）", cat: "sight", lat: 35.6870, lng: 139.7735, note: "東京中城八重洲 ➔ 日本橋三井塔 ➔ COREDO 室町。" },
     { id: "d1-07", day: 1, time: "10:30", title: "寶可夢中心 TOKYO DX", cat: "shop", lat: 35.6810, lng: 139.7745, note: "日本橋高島屋 5F，10:30 開。11:00 離開。" },
     { id: "d1-08", day: 1, time: "11:30", title: "RAMEN MATSUI", cat: "food", lat: 35.6880, lng: 139.7155, note: "完全預約制：11/26 (四) 12:00 JST（台灣 11:00）TableCheck 開放。預約費 ¥500 不退；遲到算取消（¥2,000）；提早 10 分到；只收現金。備案：MAIKAGURA、谷や。", transit: "日本橋 ➔ 新宿御苑前", link: "https://tabelog.com/tokyo/A1304/A130402/13285098/" },
-    { id: "d1-09", day: 1, time: "13:00", title: "光之丘公園 銀杏大道", cat: "sight", lat: 35.7630, lng: 139.6300, note: "11/22 紅葉見頃（tenki.jp），12/2 左右開始落葉。⚠️ 11/24 東京風雨大，葉子可能被吹落不少：11/28 晚上先看 X 搜尋「光が丘公園 イチョウ」再決定；落葉太多就改回品川 check-in 睡午覺。11/28–29 有光が丘公園フェスタ，人會比較多。", transit: "新宿御苑前 ➔ 光が丘（大江戶線）" },
-    { id: "d1-10", day: 1, time: "15:30", title: "神宮外苑：夕陽 16:28 ➔ 16:30 點燈（最後一晚）", cat: "light", lat: 35.6748, lng: 139.7177, note: "點燈 16:30–19:30，免費（東京都官方）。", transit: "光が丘 ➔ 國立競技場（大江戶線直達）", link: "https://www.metro.tokyo.lg.jp/information/press/2026/11/2026111301" },
+    { id: "d1-09", day: 1, time: "13:00", title: "光之丘公園 銀杏大道", cat: "sight", lat: 35.7630, lng: 139.6300, note: "11/22 紅葉見頃（tenki.jp），12/2 左右開始落葉。⚠️ 11/24 東京風雨大，葉子可能被吹落不少：11/28 晚上先看 X 搜尋「光が丘公園 イチョウ」再決定；落葉太多就改回品川 check-in 睡午覺。11/28–29 有光が丘公園フェスタ，人會比較多。", transit: "新宿御苑前 ➔ 光が丘（大江戶線）", tenki: "3/16/30117" },
+    { id: "d1-10", day: 1, time: "15:30", title: "神宮外苑：夕陽 16:28 ➔ 16:30 點燈（最後一晚）", cat: "light", lat: 35.6748, lng: 139.7177, note: "點燈 16:30–19:30，免費（東京都官方）。", transit: "光が丘 ➔ 國立競技場（大江戶線直達）", link: "https://www.metro.tokyo.lg.jp/information/press/2026/11/2026111301", tenki: "3/16/30688" },
     { id: "d1-11", day: 1, time: "19:00", title: "都廳投影：哥吉拉 19:00＋寶可夢 TCG 19:30", cat: "light", lat: 35.6896, lng: 139.6917, note: "都民廣場，免費。", transit: "國立競技場 ➔ 都廳前（大江戶線）", link: "https://tokyoprojectionmappingproject.jp/" },
     { id: "d1-12", day: 1, time: "19:45", title: "晚餐留白 ➔ 品川 Check-in", cat: "food", lat: 35.6896, lng: 139.6917 },
     // Day 2 — Charles
     { id: "d2-01", day: 2, time: "07:10", title: "京王線 新宿 ➔ 高尾山口", cat: "move", lat: 35.6896, lng: 139.6995, note: "品川 06:45 出發，08:00 到高尾山口。" },
-    { id: "d2-02", day: 2, time: "08:15", title: "高尾山：纜車上山 ➔ 1 號路 ➔ 山頂", cat: "sight", lat: 35.6251, lng: 139.2437, note: "纜車首班 08:00；下山搭吊椅。早上最容易看到富士山。" },
+    { id: "d2-02", day: 2, time: "08:15", title: "高尾山：纜車上山 ➔ 1 號路 ➔ 山頂", cat: "sight", lat: 35.6251, lng: 139.2437, note: "纜車首班 08:00；下山搭吊椅。早上最容易看到富士山。", tenki: "3/16/34655" },
     { id: "d2-03", day: 2, time: "10:50", title: "甲州街道銀杏大道 ➔ 西八王子", cat: "sight", lat: 35.6490, lng: 139.2980, note: "11/20 見頃 7–8 成，12/8 起落葉。午餐留白。" },
-    { id: "d2-04", day: 2, time: "13:00", title: "吉祥寺・井之頭恩賜公園", cat: "sight", lat: 35.6998, lng: 139.5730, transit: "西八王子 ➔ 吉祥寺" },
+    { id: "d2-04", day: 2, time: "13:00", title: "吉祥寺・井之頭恩賜公園", cat: "sight", lat: 35.6998, lng: 139.5730, transit: "西八王子 ➔ 吉祥寺", tenki: "3/16/32202" },
     { id: "d2-05", day: 2, time: "15:00", title: "Alpen TOKYO 買慢跑鞋", cat: "shop", lat: 35.6905, lng: 139.7020, note: "新宿東口步行 1 分。", transit: "吉祥寺 ➔ 新宿" },
     { id: "d2-06", day: 2, time: "17:00", title: "(選) mont-bell 新宿南口店", cat: "shop", lat: 35.6860, lng: 139.7005, note: "限定 T 4 款，包含「都廳とモンタベア」。" },
     { id: "d2-07", day: 2, time: "18:10", title: "中華そば しば田", cat: "food", lat: 35.6360, lng: 139.5785, note: "不能預約，晚上 17:30–20:30，週一有開。", transit: "新宿 ➔ 狛江（小田急）", link: "https://tabelog.com/tokyo/A1326/A132603/13300645/" },
     { id: "d2-09", day: 2, time: "21:00", title: "⚠️ 魚政（12/4）免費取消最後一天", cat: "food", lat: 35.6280, lng: 139.7365, note: "今天（日本時間）之前取消免費；12/1 起取消收 50%，12/2 起收 100%。改日期、改人數也算取消。不去就自己上 TableCheck 取消。", link: "https://www.tablecheck.com/ja/shops/unagi-uomasa/reserve" },
     // Day 3 — Charles；Cris 下午到，晚上會合
     { id: "d3-01", day: 3, time: "08:40", title: "ほたて日和 現場記帳", cat: "food", lat: 35.69856, lng: 139.77717, note: "平日午餐約 09:00 開放記帳，選 12:00–12:30。", transit: "品川 ➔ 秋葉原" },
-    { id: "d3-02", day: 3, time: "09:10", title: "上野恩賜公園", cat: "sight", lat: 35.7148, lng: 139.7730 },
+    { id: "d3-02", day: 3, time: "09:10", title: "上野恩賜公園", cat: "sight", lat: 35.7148, lng: 139.7730, tenki: "3/16/32201" },
     { id: "d3-03", day: 3, time: "10:15", title: "根津神社", cat: "sight", lat: 35.7203, lng: 139.7606 },
     { id: "d3-04", day: 3, time: "10:50", title: "東京大學本鄉 銀杏大道", cat: "sight", lat: 35.7134, lng: 139.7622, note: "彌生門 ➔ 安田講堂 ➔ 三四郎池。" },
     { id: "d3-05", day: 3, time: "12:15", title: "ほたて日和", cat: "food", lat: 35.69856, lng: 139.77717, link: "https://tabelog.com/tokyo/A1310/A131001/13280086/" },
@@ -54,13 +54,13 @@ window.TRIP = {
     { id: "d3-10", day: 3, time: "19:00", title: "代代木 Forest of Lights 光之森林", cat: "light", lat: 35.6717, lng: 139.6949, note: "預購 19:00 時段，只賣預售（Cris 也要買）。", transit: "六本木 ➔ 原宿", link: "https://www.yoyogiforestoflights.tokyo/", ticket: "https://l-tike.com/yoyogiforestoflights/" },
     { id: "d3-11", day: 3, time: "20:20", title: "(選) mont-bell 澀谷店", cat: "shop", lat: 35.6625, lng: 139.6985, note: "限定 T 5 款，營業到 21:00。" },
     // Day 4 — 早上一起，Charles 去 PokéPark，Cris 自由行，六義園會合
-    { id: "d4-01", day: 4, time: "07:30", title: "靖國神社 參道銀杏", cat: "sight", lat: 35.6941, lng: 139.7436, note: "👫 一起。", transit: "品川 ➔ 九段下" },
+    { id: "d4-01", day: 4, time: "07:30", title: "靖國神社 參道銀杏", cat: "sight", lat: 35.6941, lng: 139.7436, note: "👫 一起。", transit: "品川 ➔ 九段下", tenki: "3/16/34671" },
     { id: "d4-02", day: 4, time: "08:20", title: "北之丸公園（田安門）➔ 北桔橋門", cat: "sight", lat: 35.6915, lng: 139.7510 },
     { id: "d4-03", day: 4, time: "09:00", title: "江戶城遺址・皇居東御苑", cat: "sight", lat: 35.6875, lng: 139.7547, note: "天守台、本丸。免費，週一、五休。09:35 Charles 出發去 PokéPark，Cris 自由行。" },
     { id: "d4-04", day: 4, time: "11:00", who: "Charles", title: "🎮 PokéPark KANTO（精英票）", cat: "sight", lat: 35.6250, lng: 139.5180, note: "11:00–16:30。代購票 NT$4,600。", transit: "九段下 ➔ 京王よみうりランド（都營新宿線直通京王線）➔ 纜車" },
-    { id: "d4-05", day: 4, time: "18:00", title: "👫 六義園 夜間特別觀賞（會合）", cat: "light", lat: 35.7331, lng: 139.7468, note: "18:00–20:30，預售 ¥1,000 × 2（12/1 23:59 前買）。晚餐留白。", transit: "京王よみうりランド ➔ 駒込", link: "https://www.tokyo-park.or.jp/park/rikugien/news/2026/rikugiengardens.html", ticket: "https://www.tokyo-park.or.jp/park/rikugien/news/2026/rikugiengardens.html" },
+    { id: "d4-05", day: 4, time: "18:00", title: "👫 六義園 夜間特別觀賞（會合）", cat: "light", lat: 35.7331, lng: 139.7468, note: "18:00–20:30，預售 ¥1,000 × 2（12/1 23:59 前買）。晚餐留白。", transit: "京王よみうりランド ➔ 駒込", link: "https://www.tokyo-park.or.jp/park/rikugien/news/2026/rikugiengardens.html", ticket: "https://www.tokyo-park.or.jp/park/rikugien/news/2026/rikugiengardens.html", tenki: "3/16/30125" },
     // Day 5 — 橫濱
-    { id: "d5-01", day: 5, time: "09:15", title: "名勝 三溪園", cat: "sight", lat: 35.4160, lng: 139.6620, note: "¥900。11/20 楓 2 成、銀杏見頃；楓預測 12/9 見頃。", transit: "品川 ➔ 橫濱 ➔ 三溪園（巴士）" },
+    { id: "d5-01", day: 5, time: "09:15", title: "名勝 三溪園", cat: "sight", lat: 35.4160, lng: 139.6620, note: "¥900。11/20 楓 2 成、銀杏見頃；楓預測 12/9 見頃。", transit: "品川 ➔ 橫濱 ➔ 三溪園（巴士）", tenki: "3/17/34666" },
     { id: "d5-02", day: 5, time: "11:00", title: "波靈橋（ポーリン橋）", cat: "sight", lat: 35.4425, lng: 139.6530, note: "人形之家 ↔ 山下公園的人行天橋。", transit: "三溪園 ➔ 山下公園" },
     { id: "d5-03", day: 5, time: "11:15", title: "🔵 井蓋⑤ 橫濱海洋塔（皮卡丘・大嘴鷗）", cat: "sight", lat: 35.443707, lng: 139.650904, note: "塔下小廣場。座標來自寶可夢官方 Poké Lids。", link: "https://www.welcome.city.yokohama.jp/pokelids/" },
     { id: "d5-04", day: 5, time: "11:30", title: "山下公園", cat: "sight", lat: 35.4460, lng: 139.6505, note: "午餐留白。" },
@@ -80,7 +80,7 @@ window.TRIP = {
     { id: "d6-07", day: 6, time: "11:30", title: "飛木稻荷神社", cat: "sight", lat: 35.7141, lng: 139.8154, note: "之後走到京成曳舟站約 8 分。" },
     { id: "d6-u1", day: 6, time: "12:00", title: "🍱 うなぎ 魚政（已訂，2 位）", cat: "food", lat: 35.7235, lng: 139.8290, note: "國產特上 ×2（うなわさ重1・志ら焼1）＋肝吸×2＋白飯1。11:55 前到；遲到 30 分以上會被取消；同桌同一種鰻；只能一起結帳。價格以當天為準。11/30 前取消免費。", transit: "曳舟 ➔ 四ツ木（京成押上線 2 站）", link: "https://tabelog.com/tokyo/A1324/A132403/13035339/" },
     // A'：芝公園・東京鐵塔・聖誕市集
-    { id: "d6-a1", day: 6, plan: "A", time: "14:15", title: "增上寺 ➔ 芝公園", cat: "sight", lat: 35.6575, lng: 139.7483, note: "銀杏、紅葉，東京鐵塔合照。", transit: "四ツ木 ➔ 大門（京成直通淺草線，不用轉車）" },
+    { id: "d6-a1", day: 6, plan: "A", time: "14:15", title: "增上寺 ➔ 芝公園", cat: "sight", lat: 35.6575, lng: 139.7483, note: "銀杏、紅葉，東京鐵塔合照。", transit: "四ツ木 ➔ 大門（京成直通淺草線，不用轉車）", tenki: "3/16/30157" },
     { id: "d6-a2", day: 6, plan: "A", time: "15:30", title: "東京鐵塔", cat: "sight", lat: 35.6586, lng: 139.7454, note: "（選）上展望台看 16:28 夕陽，現場或官網買票。", link: "https://www.tokyotower.co.jp/" },
     { id: "d6-a3", day: 6, plan: "A", time: "16:30", title: "🎄 東京聖誕市集・芝公園（晚餐在市集）", cat: "light", lat: 35.6610, lng: 139.7490, note: "12/4 首日 16:00–22:00（最後入場 21:00）。門票指定日期時段，平日 ¥1,000／人，要先買。首日人可能多。", link: "https://tokyochristmas.net/", ticket: "https://tokyochristmas.net/" },
     { id: "d6-a4", day: 6, plan: "A", time: "19:30", title: "日比谷哥吉拉＋復仇者聯盟燈光秀", cat: "light", lat: 35.6738, lng: 139.7595, note: "每 30 分一場，免費。", transit: "御成門 ➔ 日比谷（三田線 2 站）", link: "https://www.hibiya.tokyo-midtown.com/xmas/" },
@@ -94,10 +94,11 @@ window.TRIP = {
     { id: "d6-b6", day: 6, plan: "B", time: "20:00", title: "丸之內仲通燈飾＋哈利波特聖誕樹", cat: "light", lat: 35.6812, lng: 139.7640, note: "丸大樓 1F，燈光秀到 21:00，每 15 分一場。", transit: "日比谷 ➔ 丸之內（走路）", link: "https://www.marunouchi.com/lp/brightholiday2026/" },
     // Day 7
     { id: "d7-01", day: 7, time: "07:20", title: "九品佛 淨真寺", cat: "sight", lat: 35.6060, lng: 139.6610, note: "例年 12 月上旬～中旬最盛。", transit: "品川 06:50 ➔ 九品仏（大井町線）" },
-    { id: "d7-02", day: 7, time: "09:00", title: "日比谷公園（首かけイチョウ）", cat: "sight", lat: 35.6735, lng: 139.7560, note: "Weathernews 預測 12/7 見頃。", transit: "九品仏 ➔ 日比谷（自由が丘、中目黒轉日比谷線）" },
-    { id: "d7-03", day: 7, time: "10:00", title: "Bic Camera 有樂町 買吸頂燈 ➔ 回飯店", cat: "shop", lat: 35.6745, lng: 139.7630, note: "B2F 照明區，可免稅。" },
+    { id: "d7-02", day: 7, time: "09:00", title: "日比谷公園（首かけイチョウ）", cat: "sight", lat: 35.6735, lng: 139.7560, note: "Weathernews 預測 12/7 見頃。", transit: "九品仏 ➔ 日比谷（自由が丘、中目黒轉日比谷線）", tenki: "3/16/34670" },
+    { id: "d7-02b", day: 7, time: "09:45", title: "國會議事堂外觀＋銀杏拍照", cat: "sight", lat: 35.6759, lng: 139.7449, note: "不進去參觀，只在外面拍。今年國會前銀杏沒有專門報導，參考附近北之丸、日比谷的狀況。", transit: "日比谷公園 ➔ 國會議事堂（走路約 10 分）" },
+    { id: "d7-03", day: 7, time: "10:30", title: "Bic Camera 有樂町 買吸頂燈 ➔ 回飯店", cat: "shop", lat: 35.6745, lng: 139.7630, note: "B2F 照明區，可免稅。", transit: "國會議事堂前 ➔ 有樂町" },
     { id: "d7-04", day: 7, time: "12:00", title: "午餐留白（選配）", cat: "food", lat: 35.7020, lng: 139.7530, note: "選配：麺 みつヰ（田原町，週六 11:00–16:00，整理券）／とんかつ じゅうろく（田原町，3.56）／中華そば 勝本（水道橋，3.74，無休）／海老丸らーめん（水道橋，3.74，午餐有 TableCheck Fast Pass）。詳見餐廳頁。" },
-    { id: "d7-05", day: 7, time: "13:30", title: "小石川後樂園", cat: "sight", lat: 35.7056, lng: 139.7495, note: "¥300，現場買票。", transit: "➔ 水道橋", link: "https://www.tokyo-park.or.jp/park/format/index030.html" },
+    { id: "d7-05", day: 7, time: "13:30", title: "小石川後樂園", cat: "sight", lat: 35.7056, lng: 139.7495, note: "¥300，現場買票。", transit: "➔ 水道橋", link: "https://www.tokyo-park.or.jp/park/format/index030.html", tenki: "3/16/30119" },
     { id: "d7-06", day: 7, time: "15:30", title: "(選) 東京大神宮", cat: "sight", lat: 35.6996, lng: 139.7470 },
     { id: "d7-07", day: 7, time: "18:00", who: "Charles", title: "🎤 YOASOBI 東京巨蛋", cat: "light", lat: 35.7056, lng: 139.7519, note: "15:30 開場、18:00 開演，預計 20:30 左右結束（分區退場）。16:20 到巨蛋。Cris 晚上自由。", link: "https://www.yoasobi-music.jp/special/superplanet/" },
     // Day 8
@@ -123,19 +124,35 @@ window.TRIP = {
     { name: "小石川後樂園 深山紅葉", when: "11/21–12/06", hours: "09:00–17:00", fee: "¥300", day: "Day 7", src: "https://www.tokyo-park.or.jp/park/format/index030.html" }
   ],
 
+  /* tenki: tenki.jp 紅葉頁（Apps Script 每 6 小時抓，要通行碼才顯示）；links: 其他可查的紅葉情報 */
   foliage: [
-    { spot: "明治神宮外苑", visit: "11/29", status: "見頃 7–8 成（11/20），12/2 起落葉", verdict: "ok" },
-    { spot: "光之丘公園", visit: "11/29", status: "紅葉見頃（11/22），12/2 左右開始落葉", verdict: "ok" },
+    { spot: "明治神宮外苑", visit: "11/29", status: "見頃 7–8 成（11/20），12/2 起落葉", verdict: "ok", tenki: "3/16/30688" },
+    { spot: "光之丘公園", visit: "11/29", status: "紅葉見頃（11/22），12/2 左右開始落葉；11/24 風雨", verdict: "warn", tenki: "3/16/30117" },
+    { spot: "高尾山", visit: "11/30", status: "tenki.jp 紅葉見頃（11/24）", verdict: "ok", tenki: "3/16/34655" },
     { spot: "八王子甲州街道", visit: "11/30", status: "見頃 7–8 成（11/20），12/8 起落葉", verdict: "ok" },
-    { spot: "上野恩賜公園", visit: "12/01", status: "紅葉見頃（11/21）", verdict: "ok" },
+    { spot: "井之頭恩賜公園", visit: "11/30", status: "tenki.jp 紅葉見頃（11/24）", verdict: "ok", tenki: "3/16/32202" },
+    { spot: "上野恩賜公園", visit: "12/01", status: "紅葉見頃（11/21）", verdict: "ok", tenki: "3/16/32201" },
     { spot: "東京大學本鄉", visit: "12/01", status: "沒有 2026 實測，依周邊推估接近最盛", verdict: "warn" },
-    { spot: "六義園", visit: "12/02", status: "預測 12/2 起見頃", verdict: "ok" },
-    { spot: "三溪園", visit: "12/03", status: "楓 2 成、銀杏見頃（11/20）；楓預測 12/9 見頃", verdict: "warn" },
+    { spot: "靖國神社", visit: "12/02", status: "tenki.jp 紅葉見頃（11/24）", verdict: "ok", tenki: "3/16/34671" },
+    { spot: "六義園", visit: "12/02", status: "預測 12/2 起見頃", verdict: "ok", tenki: "3/16/30125" },
+    { spot: "三溪園", visit: "12/03", status: "楓 2 成、銀杏見頃（11/20）；楓預測 12/9 見頃", verdict: "warn", tenki: "3/17/34666", more: "https://www.sankeien.or.jp/" },
     { spot: "日本大通", visit: "12/03", status: "接近見頃（11/19）", verdict: "ok" },
+    { spot: "芝公園", visit: "12/04", status: "tenki.jp 青葉（11/24），預測 12 月上旬～下旬", verdict: "warn", tenki: "3/16/30157" },
     { spot: "九品佛 淨真寺", visit: "12/05", status: "今年無資料；例年 12 月上旬～中旬", verdict: "ok" },
-    { spot: "日比谷公園", visit: "12/05", status: "まだ（11/19），預測 12/7 見頃、12/22 落葉", verdict: "ok" },
-    { spot: "小石川後樂園", visit: "12/05", status: "預測 12/1 起見頃", verdict: "ok" }
+    { spot: "日比谷公園", visit: "12/05", status: "まだ（11/19），預測 12/7 見頃、12/22 落葉", verdict: "ok", tenki: "3/16/34670" },
+    { spot: "國會議事堂", visit: "12/05", status: "沒有專門報導", verdict: "warn" },
+    { spot: "小石川後樂園", visit: "12/05", status: "預測 12/1 起見頃", verdict: "ok", tenki: "3/16/30119" }
   ],
+  foliageLinks: [
+    { name: "tenki.jp 東京", url: "https://tenki.jp/kouyou/3/16/" },
+    { name: "Weathernews 紅葉", url: "https://weathernews.jp/koyo/" },
+    { name: "Walkerplus 紅葉名所", url: "https://koyo.walkerplus.com/" },
+    { name: "東京都 37 公園紅葉情報（週一、四更新）", url: "https://www.metro.tokyo.lg.jp/information/press/2026/11/2026110514" },
+    { name: "三溪園官網", url: "https://www.sankeien.or.jp/" }
+  ],
+
+  /* 天氣：氣象廳公開 JSON（瀏覽器直接讀，6 小時快取） */
+  weather: { default: "130000", byDay: { 5: "140000" } },
 
   todos: [
     { id: "t20", text: "RAMEN MATSUI：TableCheck 訂 11/29 11:30（1 位）", due: "11/26 12:00 JST" },
