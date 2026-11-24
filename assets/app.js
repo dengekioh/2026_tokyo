@@ -110,7 +110,29 @@
     }));
     renderBoard();
   }
-  const wxIcon = code => ({ 1:"☀️", 2:"☁️", 3:"🌧️", 4:"❄️" })[String(code || "").charAt(0)] || "🌤️";
+  /* 氣象廳天氣代碼 → 中文（常見的；其餘用日文翻譯或第一碼） */
+  const WXZH = {100:"晴",101:"晴時多雲",102:"晴短暫雨",103:"晴時而有雨",104:"晴短暫雪",105:"晴時而有雪",106:"晴短暫雨或雪",107:"晴時而雨或雪",108:"晴短暫雷雨",
+    110:"晴後時多雲",111:"晴後轉多雲",112:"晴後短暫雨",113:"晴後時而有雨",114:"晴後轉雨",115:"晴後短暫雪",116:"晴後時而有雪",117:"晴後轉雪",118:"晴後轉雨或雪",119:"晴後轉雷雨",
+    120:"晴，早晚短暫雨",121:"晴，早上短暫雨",122:"晴，傍晚短暫雨",123:"晴，山區有雷雨",124:"晴，山區有雪",125:"晴，午後有雷雨",126:"晴，中午起轉雨",127:"晴，傍晚起轉雨",128:"晴，夜間轉雨",
+    130:"清晨有霧，之後晴",131:"晴，清晨有霧",132:"晴時多雲，早晚多雲",140:"晴時而雨，伴隨雷",160:"晴短暫雪或雨",170:"晴時而雪或雨",181:"晴後轉雪或雨",
+    200:"多雲",201:"多雲時晴",202:"多雲短暫雨",203:"多雲時而有雨",204:"多雲短暫雪",205:"多雲時而有雪",206:"多雲短暫雨或雪",207:"多雲時而雨或雪",208:"多雲短暫雷雨",209:"有霧",
+    210:"多雲後時晴",211:"多雲後轉晴",212:"多雲後短暫雨",213:"多雲後時而有雨",214:"多雲後轉雨",215:"多雲後短暫雪",216:"多雲後時而有雪",217:"多雲後轉雪",218:"多雲後轉雨或雪",219:"多雲後轉雷雨",
+    220:"多雲，早晚短暫雨",221:"多雲，早上短暫雨",222:"多雲，傍晚短暫雨",223:"多雲，白天時晴",224:"多雲，中午起轉雨",225:"多雲，傍晚起轉雨",226:"多雲，夜間轉雨",
+    228:"多雲，中午起轉雪",229:"多雲，傍晚起轉雪",230:"多雲，夜間轉雪",231:"多雲，海上有霧",240:"多雲時而雨，伴隨雷",250:"多雲時而雪，伴隨雷",260:"多雲短暫雪或雨",270:"多雲時而雪或雨",281:"多雲後轉雪或雨",
+    300:"雨",301:"雨時晴",302:"雨時停",303:"雨時而有雪",304:"雨或雪",306:"大雨",308:"暴風雨",309:"雨短暫雪",311:"雨後轉晴",313:"雨後轉多雲",314:"雨後時而有雪",315:"雨後轉雪",
+    316:"雨或雪後轉晴",317:"雨或雪後轉多雲",320:"雨，早上後轉晴",321:"雨，早上後轉多雲",322:"雨，早晚短暫雪",323:"雨，中午起轉晴",324:"雨，傍晚起轉晴",325:"雨，夜間轉晴",
+    326:"雨，傍晚起轉雪",327:"雨，夜間轉雪",328:"雨，時而大雨",329:"雨短暫夾雪",340:"雪或雨",350:"雨，伴隨雷",361:"雪或雨後轉晴",371:"雪或雨後轉多雲",400:"雪"};
+  const JA2ZH = [["晴れ","晴"],["くもり","多雲"],["時々","時而"],["一時","短暫"],["のち","後轉"],["所により","局部"],["を伴う","伴隨"],["昼過ぎ","下午"],["昼前","上午"],["夕方","傍晚"],["未明","凌晨"],["朝","早上"],["夜","夜間"],["から","起"],["激しく","大"],["降る",""],["で","，"]];
+  const wxZh = (code, ja) => WXZH[+code] || (ja ? JA2ZH.reduce((t, [x, y]) => t.split(x).join(y), ja) : ({1:"晴",2:"多雲",3:"雨",4:"雪"})[String(code).charAt(0)] || "—");
+  function wxKind(code, zh){
+    if (/雪/.test(zh)) return "snow";
+    const c = String(code).charAt(0);
+    if (c === "3") return "rain";
+    if (/雨/.test(zh)) return "shower";
+    if (c === "1") return /多雲/.test(zh) ? "partly" : "sun";
+    return /晴/.test(zh) ? "partly" : "cloud";
+  }
+  const WXICO = { sun:"☀️", partly:"⛅", cloud:"☁️", shower:"🌦️", rain:"🌧️", snow:"❄️" };
   function wxFor(day){
     const code = T.weather.byDay[day.id] || T.weather.default, d = WX[code];
     if (!d) return null;
@@ -121,7 +143,8 @@
       if (i >= 0){ out.text = s0.areas[0].weathers[i].replace(/　+/g, " "); out.wcode = s0.areas[0].weatherCodes[i]; out.report = d[0].reportDatetime; }
       const s1 = d[0].timeSeries[1];
       const pops = s1.timeDefines.map((t, n) => [t, s1.areas[0].pops[n]]).filter(([t]) => t.startsWith(iso));
-      if (pops.length) out.pops6 = pops.map(([t, p]) => { const h = +t.slice(11,13); return `${h}–${h+6}時 ${p}%`; });
+      const slot = { "06":"am", "12":"pm", "18":"night" };
+      pops.forEach(([t, p]) => { const k = slot[t.slice(11,13)]; if (k && p !== "") (out.slots ||= {})[k] = +p; });
       const s2 = d[0].timeSeries[2];
       if (s2){ const tt = s2.timeDefines.map((t, n) => [t, s2.areas[0].temps[n]]).filter(([t]) => t.startsWith(iso)).map(x => +x[1]);
         if (tt.length === 2 && tt[0] !== tt[1]){ out.min = Math.min(...tt); out.max = Math.max(...tt); } }
@@ -141,15 +164,31 @@
   }
   function wxHTML(day){
     const w = wxFor(day);
-    if (!w) return `<span class="wx muted">🌤️ 天氣載入中…</span>`;
+    if (!w) return `<div class="wxcard none">🌤️ 天氣載入中…</div>`;
     const url = `https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=${w.code}`;
-    if (w.none) return `<span class="wx muted">🌤️ 尚無預報（約 7 天前開始有）· <a href="${url}" target="_blank" rel="noopener">氣象廳</a></span>`;
-    const temp = w.min != null || w.max != null ? ` · 🌡 ${w.min ?? "—"}–${w.max ?? "—"}°C` : "";
-    const pop = w.pops6 ? ` · ☔ ${w.pops6.join("／")}` : w.pop != null ? ` · ☔ ${w.pop}%` : "";
-    const rel = w.rel ? `（可信度 ${w.rel}）` : "";
+    if (w.none) return `<div class="wxcard none">🌤️ 這天還沒有天氣預報（氣象廳約 7 天前開始發布）· <a href="${url}" target="_blank" rel="noopener">氣象廳 ↗</a></div>`;
+    const zh = wxZh(w.wcode, w.text), kind = wxKind(w.wcode, zh);
+    const pops = w.slots ? Object.values(w.slots) : w.pop != null ? [+w.pop] : [];
+    const maxPop = pops.length ? Math.max(...pops) : null;
+    const umb = maxPop == null ? null : maxPop >= 50 ? ["t-rain","☔ 要帶傘"] : maxPop >= 30 ? ["t-maybe","🌂 帶折傘備用"] : ["t-dry","🌂 不用帶傘"];
+    const lo = w.min != null && w.min !== "" ? +w.min : null, hi = w.max != null && w.max !== "" ? +w.max : null;
+    const coat = lo == null ? null : lo <= 5 ? "🧥 很冷：穿厚外套、羽絨" : lo <= 10 ? "🧥 早晚冷：外套＋保暖層" : "👕 薄外套就好";
+    const rain = w.slots
+      ? [["am","上午"],["pm","下午"],["night","晚上"]].map(([k, l]) => `<span class="slot"><small>${l}</small><b>${w.slots[k] != null ? w.slots[k] + "%" : "—"}</b></span>`).join("")
+      : `<span class="slot"><small>全天</small><b>${maxPop != null ? maxPop + "%" : "—"}</b></span>`;
+    const relZh = { A:"高", B:"中", C:"低，可能會變" }[w.rel];
     const when = w.report ? w.report.slice(5,16).replace("T"," ").replace("-","/") : "";
-    return `<span class="wx">${wxIcon(w.wcode)} <b>${esc(w.text || "週間預報")}</b>${temp}${pop}${rel} · <a href="${url}" target="_blank" rel="noopener">氣象廳 ${when} 發表</a></span>`;
+    const fx = kind === "rain" || kind === "shower" ? `<i class="drop"></i><i class="drop"></i><i class="drop"></i>` : kind === "snow" ? `<i class="flake">❄</i><i class="flake">❄</i>` : "";
+    return `<div class="wxcard k-${kind}">
+      <div class="wx-ico" aria-hidden="true"><span class="ico">${WXICO[kind]}</span>${fx}</div>
+      <div class="wx-main"><div class="wx-sum">${esc(zh)}</div>
+        <div class="wx-temp">${hi != null ? `<span><small>最高</small><b>${hi}°</b></span>` : ""}${lo != null ? `<span><small>最低</small><b>${lo}°</b></span>` : ""}</div></div>
+      <div class="wx-rain"><span class="lbl">降雨機率</span>${rain}</div>
+      <div class="wx-tips">${umb ? `<span class="tip ${umb[0]}">${umb[1]}</span>` : ""}${coat ? `<span class="tip">${coat}</span>` : ""}</div>
+      <div class="wx-src">${relZh ? `預報可信度：${relZh} · ` : ""}<a href="${url}" target="_blank" rel="noopener">氣象廳 ${when} 發表 ↗</a></div>
+    </div>`;
   }
+
 
   /* ---------- overview ---------- */
   function renderOverview(){
@@ -220,7 +259,8 @@
     $(".daytab.on")?.scrollIntoView({ block:"nearest", inline:"center", behavior:"smooth" });
     const d = T.days.find(x => x.id === boardDay), list = byDay(boardDay);
     $("#board").innerHTML = `<div class="day-title" style="--dc:var(--d${d.id})"><b>D${d.id}</b> ${d.date}（${d.dow}）<span>${esc(d.title)}</span><em class="nav-hint">← → 切換天數</em></div>
-      <div class="day-meta"><span class="sun">🌅 日出 <b>${d.sun[0]}</b></span><span class="sun">🌇 日落 <b>${d.sun[1]}</b></span><span class="who">👤 ${esc(d.who)}</span>${wxHTML(d)}</div>
+      ${wxHTML(d)}
+      <div class="day-meta"><span class="sun">🌅 日出 <b>${d.sun[0]}</b></span><span class="sun">🌇 日落 <b>${d.sun[1]}</b></span><span class="who">👤 ${esc(d.who)}</span></div>
       ${d.plans ? `<div class="plan-tabs" role="tablist" aria-label="版本">${d.plans.map(p => `<button role="tab" class="plan-tab ${planOf(d.id)===p.key?"on":""}" data-plan="${p.key}" aria-selected="${planOf(d.id)===p.key}"><b>${esc(p.label)}</b><span>${esc(p.desc)}</span></button>`).join("")}<small class="muted">只顯示所選版本；標「限定」的是兩版不同的地方</small></div>` : ""}
       <div class="board3" style="--dc:var(--d${d.id})">${SLOTS.map(([k, label, range]) => {
         const cards = list.filter(i => i.slot === k);

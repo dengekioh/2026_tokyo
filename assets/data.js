@@ -1,6 +1,6 @@
 /* 2026 Tokyo trip data — source of truth: ../2026_Tokyo_itinerary_v3.md (v3.7, 2026-11-24) */
 window.TRIP = {
-  version: "v3.7 · 2026-11-24",
+  version: "v3.8 · 2026-11-24",
   hotel: { name: "品川王子大飯店", lat: 35.6280, lng: 139.7365 },
 
   /* sun: 國立天文台 暦計算室（東京；12/3 為橫濱） who: 當天成員 */
