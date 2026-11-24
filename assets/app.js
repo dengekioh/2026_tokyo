@@ -70,23 +70,28 @@
   const SLOTS = [["am","☀️ 上午","～11:59"],["pm","🌤️ 下午","12:00–16:59"],["night","🌙 晚上","17:00～"]];
   function slotOf(time){ const h = parseInt(String(time).slice(0,2), 10); return h < 12 ? "am" : h < 17 ? "pm" : "night"; }
   function loadItems(){
-    const saved = store.get("board35", null); // {id:{day,order}}
+    const saved = store.get("board36", null); // {id:{day,order}}
     const items = ORIG.map((i, idx) => ({...i, order: idx}));
     items.forEach(i => i.slot = slotOf(i.time));
     if (saved) items.forEach(i => { if (saved[i.id]) { i.day = saved[i.id].day; i.order = saved[i.id].order; if (saved[i.id].slot) i.slot = saved[i.id].slot; i.moved = saved[i.id].day !== ORIG.find(o=>o.id===i.id).day; } });
     return items;
   }
   let ITEMS = loadItems();
-  const byDay = d => ITEMS.filter(i => i.day === d).sort((a,b) => a.order - b.order);
+  /* 同一天的兩個版本（例如 12/4 的 A' / B）：items 帶 plan，看板上切換 */
+  const PLAN = Object.assign({}, store.get("plan", {}));
+  const planOf = dayId => { const d = T.days.find(x => x.id === dayId); return d?.plans ? (PLAN[dayId] || d.plans[0].key) : null; };
+  const origDay = id => ORIG.find(o => o.id === id)?.day;
+  const visible = i => !i.plan || planOf(origDay(i.id)) === i.plan;
+  const byDay = d => ITEMS.filter(i => i.day === d && visible(i)).sort((a,b) => a.order - b.order);
 
   /* ---------- overview ---------- */
   function renderOverview(){
     const start = new Date("2026-11-28T20:55:00+08:00");
     const days = Math.ceil((start - new Date())/86400000);
-    const lights = T.items.filter(i => i.cat === "light").length;
+    const lights = ORIG.filter(i => i.cat === "light" && visible(i)).length;
     $("#ovStats").innerHTML = [
       ["出發倒數", days > 0 ? days + " 天" : "旅途中", true],
-      ["行程點", T.items.length + " 個", false],
+      ["行程點", ORIG.filter(visible).length + " 個", false],
       ["點燈・夜景", lights + " 場", false],
       ["日落", "16:28", false]
     ].map(([k,v,a]) => `<div class="stat"><div class="k">${k}</div><div class="v ${a?"accent":""}">${v}</div></div>`).join("");
@@ -97,6 +102,7 @@
       ["12/01","Cris 13:25 抵達成田，17:30 六本木會合 ➔ 光之森林 19:00"],
       ["12/02","PokéPark KANTO 11:00 ➔ 18:00 六義園會合"],
       ["12/03","橫濱 5 個寶可夢井蓋＋郵筒＋紅磚寶可夢燈飾"],
+      ["12/04","魚政 12:00（已訂）➔ 下午 A' 芝公園・東京鐵塔・聖誕市集／B 晴空塔・竹燈祭・みつヰ"],
       ["12/05","18:00 YOASOBI 東京巨蛋"]
     ];
     $("#ovMust").innerHTML = must.map(([d,t]) => `<li><span class="tag t-accent">${d}</span><span class="txt">${esc(t)}</span></li>`).join("");
@@ -115,10 +121,13 @@
   function cardHTML(i){
     const r = rel(i);
     const title = i.link ? `<a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.title)}</a>` : esc(i.title);
+    const pd = i.plan && T.days.find(x => x.id === origDay(i.id));
+    const planTag = pd ? `<span class="tag t-plan">${esc(pd.plans.find(p => p.key === i.plan).label)} 限定</span>` : "";
     const opts = T.days.map(d => `<option value="${d.id}" ${d.id===i.day?"selected":""}>D${d.id} ${d.date}（${d.dow}）</option>`).join("");
     return `<div class="card cat-${i.cat}${i.moved?" moved":""}" data-id="${i.id}" style="--dc:var(--d${i.day})">
-      <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${CAT[i.cat]}</span>${i.who?`<span class="tag t-who">${esc(i.who)}</span>`:""}</div>
+      <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${CAT[i.cat]}</span>${i.who?`<span class="tag t-who">${esc(i.who)}</span>`:""}${planTag}</div>
       <h4>${title}</h4>
+      ${i.ticket ? `<a class="tix" href="${esc(i.ticket)}" target="_blank" rel="noopener">🎟 要先買票 · 官網</a>` : ""}
       <div class="dist"><span class="arr">${r.arrow}</span>${esc(r.text)}${i.moved?` <span class="tag t-accent">已移動</span>`:""}</div>
       <div class="more">
         ${i.transit ? `<div class="tr">🚃 ${esc(i.transit)}</div>` : ""}
@@ -136,6 +145,7 @@
     const d = T.days.find(x => x.id === boardDay), list = byDay(boardDay);
     $("#board").innerHTML = `<div class="day-title" style="--dc:var(--d${d.id})"><b>D${d.id}</b> ${d.date}（${d.dow}）<span>${esc(d.title)}</span><em class="nav-hint">← → 切換天數</em></div>
       <div class="day-meta"><span class="sun">🌅 日出 <b>${d.sun[0]}</b></span><span class="sun">🌇 日落 <b>${d.sun[1]}</b></span><span class="who">👤 ${esc(d.who)}</span></div>
+      ${d.plans ? `<div class="plan-tabs" role="tablist" aria-label="版本">${d.plans.map(p => `<button role="tab" class="plan-tab ${planOf(d.id)===p.key?"on":""}" data-plan="${p.key}" aria-selected="${planOf(d.id)===p.key}"><b>${esc(p.label)}</b><span>${esc(p.desc)}</span></button>`).join("")}<small class="muted">只顯示所選版本；標「限定」的是兩版不同的地方</small></div>` : ""}
       <div class="board3" style="--dc:var(--d${d.id})">${SLOTS.map(([k, label, range]) => {
         const cards = list.filter(i => i.slot === k);
         return `<div class="col"><div class="col-head"><div class="d"><span>${label}</span><small>${range}</small><em>${cards.length}</em></div></div>
@@ -146,7 +156,7 @@
   function persist(){
     const saved = {};
     ITEMS.forEach(i => saved[i.id] = { day:i.day, order:i.order, slot:i.slot });
-    store.set("board35", saved);
+    store.set("board36", saved);
     ITEMS = loadItems(); renderBoard(); if (window._map) drawMarkers();
   }
   function saveBoard(){
@@ -171,6 +181,8 @@
     if (e.key === "ArrowLeft") setDay(boardDay - 1);
   });
   $("#board").addEventListener("click", e => {
+    const pl = e.target.closest("[data-plan]");
+    if (pl){ PLAN[boardDay] = pl.dataset.plan; store.set("plan", PLAN); renderBoard(); if (window._map) drawMarkers(); return; }
     const go = e.target.closest("[data-go]");
     if (go){ e.stopPropagation(); location.hash = "map"; setTimeout(() => focusItem(go.dataset.go), 300); return; }
     if (e.target.closest("a,select,label,button")) return;
@@ -182,7 +194,7 @@
     it.day = to; it.order = Math.max(-1, ...byDay(to).filter(x => x !== it).map(x => x.order)) + 1;
     persist();
   });
-  $("#boardReset").addEventListener("click", () => { store.del("board35"); ITEMS = loadItems(); renderBoard(); if (window._map) drawMarkers(); });
+  $("#boardReset").addEventListener("click", () => { store.del("board36"); ITEMS = loadItems(); renderBoard(); if (window._map) drawMarkers(); });
 
   /* ---------- map ---------- */
   let map, layer, mapDay = 0, markerById = {};
@@ -227,7 +239,7 @@
         const m = L.marker([i.lat, i.lng], {
           icon: L.divIcon({ className:"", html:`<div class="pin ${on?"":"faded"}" style="${on?`--dc:var(--d${d.id})`:""}">${on?label:""}</div>`, iconSize:[24,24], iconAnchor:[12,12] }),
           zIndexOffset: on ? 500 : 0, opacity: on ? 1 : .55
-        }).bindPopup(`<b>D${label} ${esc(i.time)}</b><br>${esc(i.title)}<br><span style="color:#6b6b7b">${esc(r.text)}</span>${i.link?`<br><a href="${esc(i.link)}" target="_blank" rel="noopener">Tabelog</a>`:""}<br><a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}&travelmode=transit" target="_blank" rel="noopener">🧭 Google 導航</a>`).addTo(layer);
+        }).bindPopup(`<b>D${label} ${esc(i.time)}</b><br>${esc(i.title)}<br><span style="color:#6b6b7b">${esc(r.text)}</span>${i.link?`<br><a href="${esc(i.link)}" target="_blank" rel="noopener">${/tabelog/.test(i.link)?"Tabelog":"官網"}</a>`:""}${i.ticket?` · <a href="${esc(i.ticket)}" target="_blank" rel="noopener">🎟 買票</a>`:""}<br><a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}&travelmode=transit" target="_blank" rel="noopener">🧭 Google 導航</a>`).addTo(layer);
         markerById[i.id] = m;
         if (on){ route.push([i.lat, i.lng]); pts.push([i.lat, i.lng]); list.push({ i, label, r }); }
       });
@@ -418,7 +430,7 @@
     $("#sheetMerge").addEventListener("click", async () => {
       if (!Sheet.on()) { alert("請先儲存 Web App 網址與通行碼。"); return; }
       if (!confirm("把這一版行程的餐廳合併進試算表？\n・試算表沒有的店會新增\n・已經有的店只更新「排在」欄位")) return;
-      try { const r = await Sheet.post({ action:"merge", sheet:"restaurants", key:"name", fields:["day"], rows: T.restaurants.map(x => ({ id: uid(), ...x })) }); alert(`新增 ${r.added} 家、更新 ${r.updated} 家。`); loadFood(); }
+      try { const r = await Sheet.post({ action:"merge", sheet:"restaurants", key:"name", fields:["day","closed","reserve"], rows: T.restaurants.map(x => ({ id: uid(), ...x })) }); alert(`新增 ${r.added} 家、更新 ${r.updated} 家。`); loadFood(); }
       catch(err){ alert("合併失敗：" + errText(err)); }
     });
   })();

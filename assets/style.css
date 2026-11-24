@@ -496,3 +496,21 @@ footer{color:var(--faint);font-size:12.5px;border-top:1px solid var(--line);padd
 .pack-add input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--panel);color:var(--ink);font:inherit}
 @media (hover:none){ .todo.pack .x{opacity:.6} }
 @media (max-width:760px){ .pack-add input{font-size:16px} .todo.pack li{padding:10px 4px} }
+
+/* v3.6 — 同一天兩個版本（A' / B）＋購票連結 */
+.plan-tabs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.plan-tab{display:flex;align-items:baseline;gap:8px;padding:8px 14px;border:1px solid var(--line);border-left:4px solid var(--dc,var(--accent));border-radius:10px;background:var(--panel);color:var(--text);cursor:pointer;font:inherit;text-align:left;transition:background .2s,box-shadow .2s}
+.plan-tab b{font-family:var(--mono);font-size:14px;color:var(--dc,var(--accent-ink))}
+.plan-tab span{font-size:13px}
+.plan-tab.on{background:var(--dc,var(--accent));border-color:var(--dc,var(--accent));box-shadow:0 4px 14px color-mix(in srgb,var(--dc,var(--accent)) 30%,transparent)}
+.plan-tab.on b,.plan-tab.on span{color:#fff}
+.plan-tabs small{flex-basis:100%;font-size:12px}
+.tag.t-plan{background:color-mix(in srgb,var(--dc,var(--accent)) 18%,transparent);color:var(--ink);border:1px dashed var(--dc,var(--accent))}
+.card .tix{display:inline-block;margin:2px 0 4px;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--tint);color:var(--accent-ink);text-decoration:none;border:1px solid var(--line)}
+.card .tix:hover{text-decoration:underline}
+@media (max-width:760px){
+  .plan-tabs{display:grid;grid-template-columns:1fr 1fr}
+  .plan-tab{flex-direction:column;gap:2px;padding:8px 10px}
+  .plan-tab span{font-size:12px;line-height:1.35}
+  .plan-tabs small{grid-column:1/-1}
+}
