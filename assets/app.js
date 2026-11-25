@@ -17,6 +17,14 @@
   const SLOTI = { am:"sun", pm:"cloud-sun", night:"moon-stars" };
   const whoIcon = w => /👫|Cris.*Charles|Charles.*Cris/.test(w) ? PH("users") : PH("user");
   const yen = n => "¥" + Math.round(Number(n)||0).toLocaleString("en-US");
+  /* 只放行 http(s) 連結（試算表或表單來的網址） */
+  const safeUrl = u => /^https?:\/\//i.test(String(u || "").trim()) ? String(u).trim() : "";
+  const SMOOTH = () => matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+  const toMin = t => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ""); return m ? +m[1]*60 + +m[2] : null; };
+  const jstNow = () => new Date(Date.now() + 9*3600e3);
+  const nowMin = () => { const j = jstNow(); return j.getUTCHours()*60 + j.getUTCMinutes(); };
+  /* Google 導航：有日文名稱就用名稱找店，沒有就用座標 */
+  const navUrl = i => `https://www.google.com/maps/dir/?api=1&destination=${i.q ? encodeURIComponent(i.q) : i.lat + "," + i.lng}&travelmode=transit`;
 
   /* ---------- geo ---------- */
   function haversine(a, b){
@@ -66,20 +74,24 @@
   $("#ver").textContent = "行程 " + T.version;
 
   /* ---------- router ---------- */
-  const SECS = ["overview","board","map","events","food","todo","stay","tax","pack","expense"];
+  const SECS = ["overview","board","map","events","food","todo","stay","info","tax","pack","expense"];
   function show(id){
     if (!SECS.includes(id)) id = "overview";
     $$(".sec").forEach(s => s.classList.toggle("on", s.id === "sec-"+id));
     document.body.dataset.sec = id;
-    $$("[data-sec]").forEach(a => a.classList.toggle("on", a.dataset.sec === id));
-    const NAMES = { overview:"總覽", board:"行程看板", map:"地圖", events:"點燈・聖誕・紅葉", food:"餐廳", todo:"預約待辦", stay:"住宿・航班", tax:"退稅新制", pack:"攜帶物品", expense:"消費表" };
-    $("#mSec").textContent = NAMES[id];
+    $$("[data-sec]").forEach(a => { const on = a.dataset.sec === id; a.classList.toggle("on", on); if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    $("#mSec").textContent = ($(`#nav [data-sec="${id}"]`)?.textContent || "").trim();
     sheet(false);
     if (id === "map") initMap();
     window.scrollTo(0, 0);
+    if (id === "board") setTimeout(scrollToNext, 60);
   }
   window.addEventListener("hashchange", () => show(location.hash.slice(1)));
-  function sheet(open){ $("#sheet").classList.toggle("on", open); $("#sheetBg").classList.toggle("on", open); $("#sheet").setAttribute("aria-hidden", !open); }
+  function sheet(open){
+    const sh = $("#sheet"); sh.classList.toggle("on", open); $("#sheetBg").classList.toggle("on", open);
+    sh.setAttribute("aria-hidden", !open); sh.inert = !open; $("#moreBtn").setAttribute("aria-expanded", open);
+  }
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#sheet").classList.contains("on")) sheet(false); });
   $("#moreBtn").addEventListener("click", () => sheet(!$("#sheet").classList.contains("on")));
   $("#sheetBg").addEventListener("click", () => sheet(false));
   const isPhone = () => matchMedia("(max-width:760px)").matches;
@@ -101,7 +113,15 @@
   const planOf = dayId => { const d = T.days.find(x => x.id === dayId); return d?.plans ? (PLAN[dayId] || d.plans[0].key) : null; };
   const origDay = id => ORIG.find(o => o.id === id)?.day;
   const visible = i => !i.plan || planOf(origDay(i.id)) === i.plan;
-  const byDay = d => ITEMS.filter(i => i.day === d && visible(i)).sort((a,b) => a.order - b.order);
+  const byDay = d => ITEMS.filter(i => i.day === d && visible(i) && !i.alert).sort((a,b) => a.order - b.order);
+  /* 跨時段的行程（有 end），例如 PokéPark 11:00–16:30，上午、下午都會出現 */
+  const SLOT_KEYS = ["am","pm","night"];
+  function spanSlots(i){
+    const s0 = SLOT_KEYS.indexOf(i.slot), e = toMin(i.end);
+    if (e == null) return [i.slot];
+    const last = SLOT_KEYS.indexOf(slotOf(`${String(Math.floor((e-1)/60)).padStart(2,"0")}:00`));
+    return SLOT_KEYS.slice(s0, Math.max(s0, last) + 1);
+  }
 
   /* ---------- 紅葉即時（tenki.jp → Apps Script → foliage 分頁，要通行碼） ---------- */
   let FOL = {}, folFetched = "";
@@ -116,7 +136,7 @@
   }
 
   /* ---------- 天氣（氣象廳 bosai JSON，瀏覽器直接讀，6 小時快取） ---------- */
-  const WX = {};
+  const WX = {}; let wxDone = false;
   async function loadWeather(){
     const codes = [...new Set([T.weather.default, ...Object.values(T.weather.byDay)])];
     await Promise.all(codes.map(async c => {
@@ -127,7 +147,7 @@
         const d = await r.json(); WX[c] = d; store.set(k, { t: Date.now(), d });
       } catch(e){ console.warn("[tk26] weather", e); if (cached) WX[c] = cached.d; }
     }));
-    renderBoard();
+    wxDone = true; renderBoard();
   }
   /* 氣象廳天氣代碼 → 中文（常見的；其餘用日文翻譯或第一碼） */
   const WXZH = {100:"晴",101:"晴時多雲",102:"晴短暫雨",103:"晴時而有雨",104:"晴短暫雪",105:"晴時而有雪",106:"晴短暫雨或雪",107:"晴時而雨或雪",108:"晴短暫雷雨",
@@ -185,7 +205,10 @@
   }
   function wxHTML(day){
     const w = wxFor(day);
-    if (!w) return `<div class="wxcard none">天氣載入中…</div>`;
+    const code0 = T.weather.byDay[day.id] || T.weather.default;
+    if (!w) return wxDone
+      ? `<div class="wxcard none">${PH("cloud-slash")}天氣載入失敗（可能沒有網路）· <a href="https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=${code0}" target="_blank" rel="noopener">氣象廳 ↗</a></div>`
+      : `<div class="wxcard none">${PH("cloud")}天氣載入中…</div>`;
     const url = `https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=${w.code}`;
     if (w.none) return `<div class="wxcard none">${PH("cloud")}這天還沒有天氣預報（氣象廳約 7 天前開始發布）· <a href="${url}" target="_blank" rel="noopener">氣象廳 ↗</a></div>`;
     const zh = wxZh(w.wcode, w.text), kind = wxKind(w.wcode, zh);
@@ -199,12 +222,15 @@
       : `<span class="slot"><small>全天</small><b>${maxPop != null ? maxPop + "%" : "—"}</b><i style="--p:${maxPop ?? 0}%"></i></span>`;
     const relZh = { A:"高", B:"中", C:"低，可能會變" }[w.rel];
     const when = w.report ? w.report.slice(5,16).replace("T"," ").replace("-","/") : "";
-    return `<div class="wxcard k-${kind}">
+    const mini = isPhone() && day.id === tripDayToday() && !wxOpen;
+    return `<div class="wxcard k-${kind}${mini ? " mini" : ""}">
+      <button class="wx-line" type="button" data-wx aria-expanded="${!mini}">${MC(WXMC[kind])}<b>${esc(zh)}</b>${hi != null ? `<span>${hi}°</span>` : ""}${lo != null ? `<span class="lo">${lo}°</span>` : ""}${maxPop != null ? `<span class="rp">${PH("drop")}${maxPop}%</span>` : ""}${umb ? `<span class="tip ${umb[0]}">${umb[1]}</span>` : ""}<i class="chev" aria-hidden="true">▾</i></button>
       <div class="wx-ico" aria-hidden="true">${MC(WXMC[kind])}</div>
       <div class="wx-main"><div class="wx-sum">${esc(zh)}</div>
         <div class="wx-temp">${hi != null ? `<span><small>最高</small><b>${hi}°</b></span>` : ""}${lo != null ? `<span><small>最低</small><b>${lo}°</b></span>` : ""}</div></div>
       <div class="wx-rain"><span class="lbl">${PH("drop")}降雨機率</span>${rain}</div>
       <div class="wx-tips">${umb ? `<span class="tip ${umb[0]}">${umb[1]}</span>` : ""}${coat ? `<span class="tip">${coat}</span>` : ""}
+      ${isPhone() && day.id === tripDayToday() ? `<button class="wx-fold" type="button" data-wx>收合 ▴</button>` : ""}
       <span class="wx-src">${relZh ? `預報可信度：${relZh} · ` : ""}<a href="${url}" target="_blank" rel="noopener">氣象廳 ${when} 發表 ↗</a></span></div>
     </div>`;
   }
@@ -214,10 +240,10 @@
   function renderOverview(){
     const start = new Date("2026-11-28T20:55:00+08:00");
     const days = Math.ceil((start - new Date())/86400000);
-    const lights = ORIG.filter(i => i.cat === "light" && visible(i)).length;
+    const lights = ORIG.filter(i => i.cat === "light" && visible(i)).length, spots = ORIG.filter(i => visible(i) && !i.alert).length;
     $("#ovStats").innerHTML = [
       ["出發倒數", days > 0 ? days + " 天" : "旅途中", true],
-      ["行程點", ORIG.filter(visible).length + " 個", false],
+      ["行程點", spots + " 個", false],
       ["點燈・夜景", lights + " 場", false],
       ["日落", "16:28", false]
     ].map(([k,v,a]) => `<div class="cell${a?" lead":""}"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
@@ -227,14 +253,14 @@
       ["11/26 12:00","RAMEN MATSUI 開放預約（11/29 午餐）"],
       ["12/01","Cris 13:25 抵達成田，17:30 六本木會合 ➔ 光之森林 19:00"],
       ["12/02","PokéPark KANTO 11:00 ➔ 18:00 六義園會合"],
-      ["12/03","橫濱 5 個寶可夢井蓋＋郵筒＋紅磚寶可夢燈飾"],
+      ["12/03","橫濱 5 個寶可夢井蓋＋郵筒 ➔ 紅磚看日落、聖誕市集＋寶可夢燈飾"],
       ["12/04","魚政 12:00（已訂）➔ 下午 A' 芝公園・東京鐵塔・聖誕市集／B 晴空塔・竹燈祭・みつヰ"],
       ["12/05","18:00 YOASOBI 東京巨蛋"]
     ];
     $("#ovMust").innerHTML = must.map(([d,t]) => `<li><span class="tag t-accent">${d}</span><span class="txt">${esc(t)}</span></li>`).join("");
     const V = { ok:["t-ok","可以"], warn:["t-warn","偏晚／未確認"], stop:["t-stop","已過"] };
     const live = f => {
-      if (!f.tenki) return f.more ? `<a href="${esc(f.more)}" target="_blank" rel="noopener">官網 ↗</a>` : `<span class="muted">無自動資料</span>`;
+      if (!f.tenki) return f.more ? `<a href="${esc(safeUrl(f.more))}" target="_blank" rel="noopener">官網 ↗</a>` : `<span class="muted">無自動資料</span>`;
       const url = `https://tenki.jp/kouyou/${f.tenki}.html`, r = FOL[f.tenki];
       if (r && r.status) return `<a href="${esc(url)}" target="_blank" rel="noopener"><span class="tag ${folTag(r.status)}">🍁 ${esc(r.status)}</span></a><br><small class="muted">${esc(r.asOf)}現在・預測 ${esc(r.forecast)}</small>`;
       return `<a href="${esc(url)}" target="_blank" rel="noopener">tenki.jp ↗</a><br><small class="muted">${Sheet.on() ? "尚無資料（執行 installTrigger）" : "輸入通行碼後顯示即時"}</small>`;
@@ -242,7 +268,7 @@
     $("#ovFoliage").innerHTML = `<tr><th>地點</th><th>你去</th><th>手動查詢</th><th>tenki.jp 即時</th><th></th></tr>` +
       T.foliage.map(f => `<tr><td class="name">${esc(f.spot)}</td><td class="mono" data-l="你去">${f.visit}</td><td data-l="手動查詢">${esc(f.status)}</td><td data-l="tenki.jp">${live(f)}</td><td data-l="判斷"><span class="tag ${V[f.verdict][0]}">${V[f.verdict][1]}</span></td></tr>`).join("");
     $("#ovFolNote").innerHTML = `手動查詢：11/21–24。即時：tenki.jp，Apps Script 每 6 小時更新${folFetched ? `（最後抓取 ${esc(folFetched)}）` : ""}。其他：` +
-      T.foliageLinks.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)}</a>`).join("・");
+      T.foliageLinks.map(l => `<a href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener">${esc(l.name)}</a>`).join("・");
   }
 
   /* ---------- itinerary board: day tabs, each day is a 3-column kanban (上午／下午／晚上) ---------- */
@@ -252,24 +278,46 @@
     return T.days.find(x => x.date === key)?.id || 0;
   }
   let boardDay = tripDayToday() || store.get("boardDay", 1);
-  function cardHTML(i){
+  let wxOpen = false;
+  /* 卡片展開狀態：重畫（天氣、紅葉載入完）後保持 */
+  const OPEN = new Set();
+  /* 下一站：今天（日本時間）現在進行中或下一個行程 */
+  let NEXT = null, nextAuto = "";
+  function nextOf(list){
+    const n = nowMin(), cand = list.filter(i => toMin(i.time) != null).sort((a,b) => toMin(a.time) - toMin(b.time));
+    const on = cand.find(i => i.end && toMin(i.time) <= n && n < toMin(i.end));
+    if (on) return { id:on.id, state:"now", slot: slotOf(String(Math.floor(n/60)).padStart(2,"0") + ":00") };
+    const nx = cand.find(i => toMin(i.time) >= n);
+    return nx ? { id:nx.id, state:"next", mins: toMin(nx.time) - n, slot: nx.slot } : null;
+  }
+  const nextLabel = x => x.state === "now" ? "進行中" : x.mins < 1 ? "下一站 · 現在" : `下一站 · ${[x.mins >= 60 ? Math.floor(x.mins/60) + " 小時" : "", x.mins % 60 ? x.mins % 60 + " 分" : ""].filter(Boolean).join(" ")}後`;
+  function scrollToNext(){
+    if (!$("#sec-board").classList.contains("on") || boardDay !== tripDayToday()) return;
+    const c = $("#board .card.next:not(.cont)") || $("#board .col.show .card.next");
+    if (c && c.offsetParent) c.scrollIntoView({ block:"center", behavior: SMOOTH() });
+  }
+  function cardHTML(i, cont){
     const r = rel(i);
-    const title = i.link ? `<a href="${esc(i.link)}" target="_blank" rel="noopener">${esc(i.title)}</a>` : esc(i.title);
+    const link = safeUrl(i.link), ticket = safeUrl(i.ticket);
+    const title = link ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(i.title)}</a>` : esc(i.title);
+    const isNext = NEXT && NEXT.id === i.id, open = OPEN.has(i.id);
     const pd = i.plan && T.days.find(x => x.id === origDay(i.id));
     const planTag = pd ? `<span class="tag t-plan">${esc(pd.plans.find(p => p.key === i.plan).label)} 限定</span>` : "";
     const opts = T.days.map(d => `<option value="${d.id}" ${d.id===i.day?"selected":""}>D${d.id} ${d.date}（${d.dow}）</option>`).join("");
-    return `<div class="card cat-${i.cat}${i.moved?" moved":""}" data-id="${i.id}" style="--dc:var(--d${i.day})">
-      <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${PH(CATI[i.cat])}${CAT[i.cat]}</span>${i.who?`<span class="tag t-who${i.who==="Cris"?" cris":""}">${whoIcon(i.who)}${esc(i.who)}</span>`:""}${planTag}</div>
+    const time = cont ? `～${esc(i.end)}` : esc(i.time) + (i.end ? `–${esc(i.end)}` : "");
+    return `<div class="card cat-${i.cat}${i.moved?" moved":""}${cont?" cont":""}${isNext?" next":""}${open?" open":""}" data-id="${i.id}" style="--dc:var(--d${i.day})" tabindex="0" aria-expanded="${open}">
+      ${isNext ? `<div class="next-badge">${PH(NEXT.state === "now" ? "person-simple-walk" : "navigation-arrow")}<span>${nextLabel(NEXT)}</span></div>` : ""}
+      <div class="top"><span class="time">${time}</span>${cont ? `<span class="tag t-cont">延續</span>` : ""}<span class="tag t-${i.cat}">${PH(CATI[i.cat])}${CAT[i.cat]}</span>${i.who?`<span class="tag t-who${i.who==="Cris"?" cris":""}">${whoIcon(i.who)}${esc(i.who)}</span>`:""}${planTag}</div>
       <h4>${title}</h4>
       ${i.tenki && FOL[i.tenki]?.status ? `<a class="fol tag ${folTag(FOL[i.tenki].status)}" href="https://tenki.jp/kouyou/${esc(i.tenki)}.html" target="_blank" rel="noopener">🍁 ${esc(FOL[i.tenki].status)}（${esc(FOL[i.tenki].asOf)}）</a>` : ""}
-      ${i.ticket ? `<a class="tix" href="${esc(i.ticket)}" target="_blank" rel="noopener">🎟 要先買票 · 官網</a>` : ""}
-      <div class="dist"><span class="arr">${r.arrow}</span>${esc(r.text)}${i.moved?` <span class="tag t-accent">已移動</span>`:""}</div>
+      ${ticket ? `<a class="tix" href="${esc(ticket)}" target="_blank" rel="noopener">🎟 要先買票 · 官網</a>` : ""}
+      <div class="dist"><span class="arr">${r.arrow}</span>${esc(r.text)}${i.moved?` <span class="tag t-accent">已移動</span>`:""}
+        <a class="navlink" href="${navUrl(i)}" target="_blank" rel="noopener">${PH("navigation-arrow")}導航</a></div>
       <div class="more">
         ${i.transit ? `<div class="tr">🚃 ${esc(i.transit)}</div>` : ""}
         ${i.note ? `<div>${esc(i.note)}</div>` : ""}
         <div class="ctrl"><label class="small muted">移到 <select data-move="${i.id}">${opts}</select></label>
-        <button class="maplink" data-go="${i.id}">在地圖上看</button>
-        <a class="navlink" href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}&travelmode=transit" target="_blank" rel="noopener">🧭 Google 導航</a></div>
+        <button class="maplink" data-go="${i.id}">在地圖上看</button></div>
       </div></div>`;
   }
   function renderBoard(){
@@ -277,28 +325,33 @@
     $("#boardTabs").innerHTML = T.days.map(d => `<button role="tab" class="daytab ${d.id===boardDay?"on":""}" data-day="${d.id}" style="--dc:var(--d${d.id})" aria-selected="${d.id===boardDay}">
       <b>D${d.id}${d.id===tripDayToday()?' · 今天':''}</b><span>${d.date}<small>（${d.dow}）</small></span><em>${byDay(d.id).length}</em></button>`).join("");
     const tabs = $("#boardTabs"), on = $(".daytab.on", tabs);
-    if (on && tabs.scrollWidth > tabs.clientWidth) tabs.scrollTo({ left: on.offsetLeft - (tabs.clientWidth - on.offsetWidth)/2, behavior:"smooth" });
+    if (on && tabs.scrollWidth > tabs.clientWidth) tabs.scrollTo({ left: on.offsetLeft - (tabs.clientWidth - on.offsetWidth)/2, behavior: SMOOTH() });
     const d = T.days.find(x => x.id === boardDay), list = byDay(boardDay);
+    NEXT = boardDay === tripDayToday() ? nextOf(list) : null;
+    if (NEXT && nextAuto !== NEXT.id){ nextAuto = NEXT.id; OPEN.add(NEXT.id); }
+    const alerts = ITEMS.filter(i => i.day === d.id && i.alert);
+    const inSlot = k => list.filter(i => spanSlots(i).includes(k));
     $("#board").style.setProperty("--dc", `var(--d${d.id})`);
     const phone = isPhone(), seg = phone ? slotFor(d.id, list) : null;
     document.documentElement.style.setProperty("--cur-dc", `var(--d${d.id})`);
     $("#board").innerHTML = `<div class="day-hero"><div class="day-title" style="--dc:var(--d${d.id})"><b>D${d.id}</b> ${d.date}（${d.dow}）<span>${esc(d.title)}</span><em class="nav-hint">← → 切換天數</em></div>
+      ${alerts.map(a => `<div class="alertbar">${PH("warning-circle")}<div><b>${esc(a.time)}　${esc(a.title)}</b><span>${esc(a.note || "")}</span>${safeUrl(a.link) ? `<a href="${esc(safeUrl(a.link))}" target="_blank" rel="noopener">TableCheck ↗</a>` : ""}</div></div>`).join("")}
       ${wxHTML(d)}
       <div class="day-meta"><span class="sun">${MC("sunrise")}日出 <b>${d.sun[0]}</b></span><span class="sun">${MC("sunset")}日落 <b>${d.sun[1]}</b></span><span class="who">${whoIcon(d.who)}${esc(d.who.replace(/\s*👫\s*/g, " 兩人 ").trim())}</span></div>
       ${d.plans ? `<div class="plan-tabs" role="tablist" aria-label="版本">${d.plans.map(p => `<button role="tab" class="plan-tab ${planOf(d.id)===p.key?"on":""}" data-plan="${p.key}" aria-selected="${planOf(d.id)===p.key}"><b>${esc(p.label)}</b><span>${esc(p.desc)}</span></button>`).join("")}<small class="muted">只顯示所選版本；標「限定」的是兩版不同的地方</small></div>` : ""}</div>
-      ${phone ? `<div class="seg" role="tablist" aria-label="時段" style="--i:${SLOTS.findIndex(([k]) => k === seg)}"><i class="seg-ind" aria-hidden="true"></i>${SLOTS.map(([k, label]) => `<button role="tab" class="${seg===k?"on":""}" data-seg="${k}" aria-selected="${seg===k}">${PH(SLOTI[k])}${label.replace(/^\S+\s/, "")} <em>${list.filter(i => i.slot === k).length}</em></button>`).join("")}</div>` : ""}
+      ${phone ? `<div class="seg" role="tablist" aria-label="時段" style="--i:${SLOTS.findIndex(([k]) => k === seg)}"><i class="seg-ind" aria-hidden="true"></i>${SLOTS.map(([k, label]) => `<button role="tab" class="${seg===k?"on":""}" data-seg="${k}" aria-selected="${seg===k}">${PH(SLOTI[k])}${label.replace(/^\S+\s/, "")} <em>${inSlot(k).length}</em></button>`).join("")}</div>` : ""}
       <div class="board3${phone?" one":""}">${SLOTS.map(([k, label, range]) => {
-        const cards = list.filter(i => i.slot === k);
+        const cards = inSlot(k).sort((a, b) => (a.slot === k) - (b.slot === k)); // 延續的放最上面
         return `<div class="col${seg===k?" show":""}"><div class="col-head"><div class="d"><span>${PH(SLOTI[k])}${label.replace(/^\S+\s/, "")}</span><small>${range}</small><em>${cards.length}</em></div></div>
-          <div class="col-body" data-slot="${k}">${cards.map(cardHTML).join("")}</div></div>`;
+          <div class="col-body" data-slot="${k}">${cards.map(i => cardHTML(i, i.slot !== k)).join("")}</div></div>`;
       }).join("")}</div>`;
-    if (window.Sortable && !isPhone()) $$("#board .col-body").forEach(el => new Sortable(el, { group:"slots", animation:150, delay:150, delayOnTouchOnly:true, ghostClass:"sortable-ghost", onEnd: saveBoard }));
+    if (window.Sortable && !isPhone()) $$("#board .col-body").forEach(el => new Sortable(el, { group:"slots", draggable:".card:not(.cont)", animation:150, delay:150, delayOnTouchOnly:true, ghostClass:"sortable-ghost", onEnd: saveBoard }));
   }
   /* 手機：一次只看一個時段。今天就依現在時間，其他天選第一個有行程的時段 */
   const SEG = {};
   function slotFor(dayId, list){
     if (SEG[dayId]) return SEG[dayId];
-    if (dayId === tripDayToday()){ const h = new Date(Date.now() + 9*3600e3).getUTCHours(); return h < 12 ? "am" : h < 17 ? "pm" : "night"; }
+    if (dayId === tripDayToday()){ if (NEXT) return NEXT.slot; const h = jstNow().getUTCHours(); return h < 12 ? "am" : h < 17 ? "pm" : "night"; }
     return (SLOTS.find(([k]) => list.some(i => i.slot === k)) || SLOTS[0])[0];
   }
   matchMedia("(max-width:760px)").addEventListener("change", () => renderBoard());
@@ -322,7 +375,7 @@
   }
   function saveBoard(){
     let n = 0;
-    $$("#board .col-body").forEach(col => $$(".card", col).forEach(c => { const it = ITEMS.find(x => x.id === c.dataset.id); it.slot = col.dataset.slot; it.order = n++; }));
+    $$("#board .col-body").forEach(col => $$(".card:not(.cont)", col).forEach(c => { const it = ITEMS.find(x => x.id === c.dataset.id); it.slot = col.dataset.slot; it.order = n++; }));
     persist();
   }
   function setDay(n){ boardDay = Math.min(8, Math.max(1, n)); store.set("boardDay", boardDay); renderBoard(); }
@@ -348,11 +401,28 @@
     if (pl){ PLAN[boardDay] = pl.dataset.plan; store.set("plan", PLAN); renderBoard(); if (window._map) drawMarkers(); return; }
     const go = e.target.closest("[data-go]");
     if (go){ e.stopPropagation(); location.hash = "map"; setTimeout(() => focusItem(go.dataset.go), 300); return; }
+    if (e.target.closest("[data-wx]")){ wxOpen = !wxOpen; renderBoard(); return; }
     if (e.target.closest("a,select,label,button")) return;
-    const c = e.target.closest(".card"); if (c) c.classList.toggle("open");
+    const c = e.target.closest(".card"); if (c) toggleCard(c);
   });
+  function toggleCard(c){
+    const id = c.dataset.id, open = !OPEN.has(id);
+    if (open) OPEN.add(id); else OPEN.delete(id);
+    $$(`#board .card[data-id="${id}"]`).forEach(x => { x.classList.toggle("open", open); x.setAttribute("aria-expanded", open); });
+  }
+  $("#board").addEventListener("keydown", e => {
+    if ((e.key === "Enter" || e.key === " ") && e.target.classList?.contains("card")){ e.preventDefault(); toggleCard(e.target); }
+  });
+  /* 每分鐘更新「下一站」倒數；換成下一個行程時才整個重畫 */
+  setInterval(() => {
+    if (document.hidden || !$("#sec-board").classList.contains("on") || boardDay !== tripDayToday()) return;
+    const nx = nextOf(byDay(boardDay));
+    if (!nx || !NEXT || nx.id !== NEXT.id || nx.state !== NEXT.state) return renderBoard();
+    NEXT = nx; $$("#board .next-badge span").forEach(el => el.textContent = nextLabel(nx));
+  }, 60e3);
   $("#board").addEventListener("change", e => {
     const s = e.target.closest("[data-move]"); if (!s) return;
+    OPEN.delete(s.dataset.move);
     const it = ITEMS.find(x => x.id === s.dataset.move), to = +s.value;
     it.day = to; it.order = Math.max(-1, ...byDay(to).filter(x => x !== it).map(x => x.order)) + 1;
     persist();
@@ -403,7 +473,7 @@
         const m = L.marker([i.lat, i.lng], {
           icon: L.divIcon({ className:"", html:`<div class="pin ${on?"":"faded"}${i.who==="Cris"?" cris":""}" style="${on?`--dc:var(--d${d.id})`:""}">${on?label:""}</div>`, iconSize:[24,24], iconAnchor:[12,12] }),
           zIndexOffset: on ? 500 : 0, opacity: on ? 1 : .55
-        }).bindPopup(`<b>D${label} ${esc(i.time)}</b><br>${esc(i.title)}<br><span style="color:#6b6b7b">${esc(r.text)}</span>${i.link?`<br><a href="${esc(i.link)}" target="_blank" rel="noopener">${/tabelog/.test(i.link)?"Tabelog":"官網"}</a>`:""}${i.ticket?` · <a href="${esc(i.ticket)}" target="_blank" rel="noopener">🎟 買票</a>`:""}<br><a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}&travelmode=transit" target="_blank" rel="noopener">🧭 Google 導航</a>`).addTo(layer);
+        }).bindPopup(`<b>D${label} ${esc(i.time)}</b><br>${esc(i.title)}<br><span style="color:#6b6b7b">${esc(r.text)}</span>${safeUrl(i.link)?`<br><a href="${esc(safeUrl(i.link))}" target="_blank" rel="noopener">${/tabelog/.test(i.link)?"Tabelog":"官網"}</a>`:""}${safeUrl(i.ticket)?` · <a href="${esc(safeUrl(i.ticket))}" target="_blank" rel="noopener">🎟 買票</a>`:""}<br><a href="${navUrl(i)}" target="_blank" rel="noopener">🧭 Google 導航</a>`).addTo(layer);
         markerById[i.id] = m;
         if (on){ pts.push([i.lat, i.lng]); list.push({ i, label, r }); }
       });
@@ -437,38 +507,100 @@
   /* ---------- events ---------- */
   function renderEvents(){
     $("#evTable").innerHTML = `<tr><th>活動</th><th>期間</th><th>時間</th><th>費用</th><th>排在</th></tr>` +
-      T.events.map(e => `<tr><td class="name"><a href="${esc(e.src)}" target="_blank" rel="noopener">${esc(e.name)}</a></td><td class="mono" data-l="期間">${esc(e.when)}</td><td data-l="時間">${esc(e.hours)}</td><td data-l="費用">${esc(e.fee)}</td><td data-l="排在"><span class="tag t-accent">${esc(e.day)}</span></td></tr>`).join("");
+      T.events.map(e => `<tr><td class="name"><a href="${esc(safeUrl(e.src))}" target="_blank" rel="noopener">${esc(e.name)}</a></td><td class="mono" data-l="期間">${esc(e.when)}</td><td data-l="時間">${esc(e.hours)}</td><td data-l="費用">${esc(e.fee)}</td><td data-l="排在"><span class="tag t-accent">${esc(e.day)}</span></td></tr>`).join("");
   }
 
   /* ---------- Google Sheet API (Apps Script web app) ---------- */
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
   const Sheet = {
     cfg(){ return store.get("sheet", null); },
     on(){ const c = this.cfg(); return !!(c && c.url); },
-    async list(name){ return (await this.post({ action:"list", sheet:name })).rows; },
+    /* 讀成功就存一份在手機（cache-分頁名），沒網路時拿這份來顯示 */
+    async list(name){ const rows = (await this.post({ action:"list", sheet:name })).rows; store.set("cache-" + name, rows); return rows; },
+    cached(name){ return store.get("cache-" + name, null); },
     async post(body){
-      const c = this.cfg();
-      const r = await fetch(c.url, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify({ ...body, token: c.token||"" }) });
-      const j = await r.json(); if (!j.ok) throw new Error(j.error || "post failed"); return j;
+      const c = this.cfg(), ac = new AbortController(), t = setTimeout(() => ac.abort(), 12000);
+      try {
+        const r = await fetch(c.url, { method:"POST", headers:{ "Content-Type":"text/plain;charset=utf-8" }, body: JSON.stringify({ ...body, token: c.token||"" }), signal: ac.signal });
+        const j = await r.json();
+        if (!j.ok){ const e = new Error(j.error || "post failed"); e.server = true; throw e; }
+        return j;
+      } catch(e){ if (e.name === "AbortError") throw new Error("timeout"); throw e; }
+      finally { clearTimeout(t); }
     }
   };
+  /* 待上傳佇列：沒網路／逾時的修改先存在手機（tk26-outbox），有網路時照順序補傳 */
+  const retryable = e => !e.server || /bad token|busy/.test(e.message);
+  const Outbox = {
+    all(){ return store.get("outbox", []); },
+    push(op){ store.set("outbox", this.all().concat([{ ...op, _q: uid() }])); },
+    drop(q){ store.set("outbox", this.all().filter(o => o._q !== q)); },
+    busy: null,
+    /* 回傳 true＝已送到試算表；false＝先存起來等網路 */
+    async send(op){
+      if (this.all().length){ this.push(op); await this.flush(); await this.flush(); return !this.all().length; }
+      try { await Sheet.post(op); return true; }
+      catch(e){ if (!retryable(e)) throw e; this.push(op); return false; }
+    },
+    flush(){
+      if (this.busy) return this.busy;
+      if (!Sheet.on() || !this.all().length) return Promise.resolve();
+      return this.busy = (async () => {
+        try {
+          for (const op of this.all()){
+            const { _q, ...body } = op;
+            try { await Sheet.post(body); } catch(e){ if (retryable(e)) break; console.warn("[tk26] drop op", e); }
+            this.drop(_q);
+          }
+        } finally { this.busy = null; }
+      })();
+    },
+    /* 把還沒送出的修改疊到讀回來的資料上，畫面才不會少一筆 */
+    apply(sheet, rows){
+      rows = (rows || []).map(r => ({ ...r }));
+      this.all().filter(o => o.sheet === sheet).flatMap(o => o.action === "batch" ? o.ops : [o]).forEach(o => {
+        if (o.action === "add"){ const r = rows.find(r => String(r.id) === String(o.row.id)); if (r) Object.assign(r, o.row); else rows.push({ ...o.row }); }
+        if (o.action === "update"){ const r = rows.find(r => String(r.id) === String(o.id)); if (r) Object.assign(r, o.row); }
+        if (o.action === "delete") rows = rows.filter(r => String(r.id) !== String(o.id));
+      });
+      return rows;
+    }
+  };
+  const pendingText = () => { const n = Outbox.all().length; return n ? `；${n} 筆待上傳，有網路會自動補傳` : ""; };
+  async function write(sel, op){
+    try {
+      const ok = await Outbox.send(op);
+      setSync($(sel), ok ? "ok" : "err", ok ? "已同步" : "離線：先存在手機" + pendingText());
+    } catch(e){ setSync($(sel), "err", "同步失敗：" + errText(e)); }
+  }
+  async function loadShared(name, sel, fallback){
+    setSync($(sel), "busy", "同步中…");
+    await Outbox.flush();
+    try { const rows = Outbox.apply(name, await Sheet.list(name)); setSync($(sel), "ok", "已連線 Google Sheet" + pendingText()); return rows; }
+    catch(e){
+      console.error("[tk26] " + name, e);
+      const c = Sheet.cached(name);
+      setSync($(sel), "err", (c ? "離線：顯示上次同步的資料 · " : "連線失敗 · ") + errText(e) + pendingText());
+      return c ? Outbox.apply(name, c) : fallback();
+    }
+  }
   function setSync(el, state, text){ const d = $(".dot", el); d.className = "dot " + (state||""); $("span", el).textContent = text; }
   function errText(e){
     const m = String(e && e.message || e);
     if (/bad token/.test(m)) return "通行碼不對（bad token）";
     if (/use POST|unknown action/.test(m)) return "Apps Script 還是舊版，請貼新版程式碼並重新部署成「新版本」";
-    if (/sheet not found/.test(m)) return "找不到分頁，請在 Apps Script 執行 setup()";
-    if (/Failed to fetch|NetworkError|Load failed|Unexpected token|JSON/.test(m)) return "連不到網址或回應不是 JSON（確認網址結尾是 /exec、存取權是「所有人」）";
+    if (/sheet not found|unknown sheet/.test(m)) return "Apps Script 要更新：貼新版程式碼、執行 setup()、重新部署";
+    if (/timeout/.test(m)) return "網路太慢，12 秒沒有回應";
+    if (/Failed to fetch|NetworkError|Load failed/.test(m)) return navigator.onLine === false ? "沒有網路" : "連不到網址（確認網址結尾是 /exec、存取權是「所有人」）";
+    if (/Unexpected token|JSON/.test(m)) return "回應不是 JSON（Apps Script 忙碌或網址錯誤）";
     return m;
   }
-  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
 
   /* ---------- restaurants ---------- */
   let FOOD = [], foodType = "全部", foodSort = { k:"tabelog", dir:-1 };
   async function loadFood(){
     if (Sheet.on()){
-      setSync($("#foodSync"), "busy", "同步中…");
-      try { FOOD = (await Sheet.list("restaurants")).map(normFood); setSync($("#foodSync"), "ok", "已連線 Google Sheet"); }
-      catch(e){ console.error("[tk26] restaurants", e); FOOD = store.get("food", null) || T.restaurants.map(r => ({ id: uid(), ...r })); setSync($("#foodSync"), "err", "連線失敗：" + errText(e)); }
+      FOOD = (await loadShared("restaurants", "#foodSync", () => store.get("food", null) || T.restaurants.map(r => ({ id: uid(), ...r })))).map(normFood);
     } else {
       FOOD = store.get("food", null) || T.restaurants.map(r => ({ id: uid(), ...r }));
       setSync($("#foodSync"), "", "本機模式");
@@ -492,7 +624,7 @@
     const el = $("#foodTypes"), on = $(".utab.on", el), ind = $(".utab-ind", el);
     if (!on || !ind) return;
     ind.style.width = on.offsetWidth + "px"; ind.style.transform = `translateX(${on.offsetLeft}px)`;
-    if (scroll && el.scrollWidth > el.clientWidth) el.scrollTo({ left: on.offsetLeft - (el.clientWidth - on.offsetWidth)/2, behavior:"smooth" });
+    if (scroll && el.scrollWidth > el.clientWidth) el.scrollTo({ left: on.offsetLeft - (el.clientWidth - on.offsetWidth)/2, behavior: SMOOTH() });
   }
   function renderFood(){
     const types = ["全部", ...Array.from(new Set(FOOD.map(f => f.type).filter(Boolean)))];
@@ -508,7 +640,7 @@
     const th = (key, label) => `<th class="sortable" data-k="${key}">${label}${foodSort.k===key?(foodSort.dir<0?" ↓":" ↑"):""}</th>`;
     $("#foodTable").innerHTML = `<tr>${th("name","店名")}${th("type","種類")}${th("tabelog","Tabelog")}${th("google","Google")}${th("area","地區")}<th>公休</th><th>預約</th>${th("day","排在")}<th></th></tr>` +
       rows.map(f => `<tr>
-        <td class="name">${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>` : `<b>${esc(f.name)}</b>`}</td>
+        <td class="name">${safeUrl(f.url) ? `<a href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener">${esc(f.name)}</a>` : `<b>${esc(f.name)}</b>`}</td>
         <td class="extra" data-l="種類"><span class="tag t-food">${esc(f.type)}</span></td>
         <td class="num" data-l="Tabelog"><span class="score ${Number(f.tabelog)>=3.8?"hi":""}">${f.tabelog!==""&&f.tabelog!=null?Number(f.tabelog).toFixed(2):"—"}</span><br><span class="muted small">${f.tabelogReviews?Number(f.tabelogReviews).toLocaleString()+" 則":""}</span></td>
         <td class="num extra" data-l="Google">${f.google!==""&&f.google!=null?Number(f.google).toFixed(1):"—"}<br><span class="muted small">${f.googleReviews?Number(f.googleReviews).toLocaleString()+" 則":""}</span></td>
@@ -525,7 +657,7 @@
     if (!d){ const tr = e.target.closest("tr"); if (tr && isPhone() && !e.target.closest("a")) tr.classList.toggle("open"); return; }
     const f = FOOD.find(x => x.id === d.dataset.del); if (!f || !confirm(`刪除「${f.name}」？`)) return;
     FOOD = FOOD.filter(x => x !== f); renderFood();
-    if (Sheet.on()) { try{ await Sheet.post({ action:"delete", sheet:"restaurants", id:f.id }); }catch(err){ setSync($("#foodSync"),"err","刪除同步失敗"); } }
+    if (Sheet.on()) write("#foodSync", { action:"delete", sheet:"restaurants", id:f.id });
     else store.set("food", FOOD);
   });
   $("#foodForm").addEventListener("submit", async e => {
@@ -533,18 +665,27 @@
     const fd = Object.fromEntries(new FormData(e.target).entries());
     const row = normFood({ id: uid(), ...fd });
     FOOD.push(row); renderFood(); e.target.reset();
-    if (Sheet.on()) { try{ await Sheet.post({ action:"add", sheet:"restaurants", row }); setSync($("#foodSync"),"ok","已同步"); }catch(err){ setSync($("#foodSync"),"err","新增同步失敗"); } }
+    if (Sheet.on()) write("#foodSync", { action:"add", sheet:"restaurants", row });
     else store.set("food", FOOD);
   });
 
   /* ---------- todo ---------- */
+  /* 勾選狀態：設定 Google Sheet 後存在 todos 分頁，兩支手機共用；同時在手機留一份 */
+  let TODO = store.get("todo", {});
+  async function loadTodo(){
+    if (Sheet.on()){
+      const rows = await loadShared("todos", "#todoSync", () => null);
+      if (rows){ TODO = {}; rows.forEach(r => TODO[r.id] = truthy(r.done)); store.set("todo", TODO); }
+    } else { TODO = store.get("todo", {}); setSync($("#todoSync"), "", "本機模式"); }
+    renderTodo();
+  }
   function renderTodo(){
-    const done = store.get("todo", {});
-    $("#todoList").innerHTML = T.todos.map(t => `<li class="${done[t.id]?"done":""}"><input type="checkbox" data-id="${t.id}" ${done[t.id]?"checked":""}><span class="txt">${esc(t.text)}</span><span class="due tag t-accent">${esc(t.due)}</span></li>`).join("");
+    $("#todoList").innerHTML = T.todos.map(t => `<li class="${TODO[t.id]?"done":""}"><label><input type="checkbox" data-id="${t.id}" ${TODO[t.id]?"checked":""}><span class="txt">${esc(t.text)}</span></label><span class="due tag t-accent">${esc(t.due)}</span></li>`).join("");
   }
   $("#todoList").addEventListener("change", e => {
     const id = e.target.dataset.id; if (!id) return;
-    const done = store.get("todo", {}); done[id] = e.target.checked; store.set("todo", done); renderTodo();
+    TODO[id] = e.target.checked; store.set("todo", TODO); renderTodo();
+    if (Sheet.on()) write("#todoSync", { action:"add", sheet:"todos", row:{ id, done: e.target.checked, updated: new Date().toISOString() } });
   });
 
   /* ---------- tax & N'EX (content from tax.js) ---------- */
@@ -560,9 +701,7 @@
   const fx = () => Number($("#fx").value) || 0;
   async function loadExp(){
     if (Sheet.on()){
-      setSync($("#expSync"), "busy", "同步中…");
-      try { EXP = (await Sheet.list("expenses")).map(r => ({...r, amount:Number(r.amount)||0, day:Number(r.day)||0})); setSync($("#expSync"), "ok", "已連線 Google Sheet"); }
-      catch(e){ console.error("[tk26] expenses", e); EXP = store.get("exp", []); setSync($("#expSync"), "err", "連線失敗：" + errText(e)); }
+      EXP = (await loadShared("expenses", "#expSync", () => [])).map(r => ({...r, amount:Number(r.amount)||0, day:Number(r.day)||0}));
     } else { EXP = store.get("exp", []); setSync($("#expSync"), "", "本機模式"); }
     renderExp();
   }
@@ -593,6 +732,7 @@
       : `<tr><td colspan="7" class="muted">還沒有資料。</td></tr>`);
   }
   $("#expDay").innerHTML = T.days.map(d => `<option value="${d.id}">D${d.id} ${d.date}（${d.dow}）</option>`).join("");
+  $("#expDay").value = String(tripDayToday() || 1);
   $("#fx").value = store.get("fx", 0.21);
   $("#fx").addEventListener("input", () => { store.set("fx", fx()); renderExp(); });
   $("#expForm").addEventListener("submit", async e => {
@@ -600,14 +740,14 @@
     const fd = Object.fromEntries(new FormData(e.target).entries());
     const row = { id: uid(), day:Number(fd.day), cat:fd.cat, item:fd.item, amount:Number(fd.amount)||0, pay:fd.pay, note:fd.note, created:new Date().toISOString() };
     EXP.push(row); renderExp(); const el = e.target.elements; el.item.value = ""; el.amount.value = ""; el.note.value = "";
-    if (Sheet.on()) { try{ await Sheet.post({ action:"add", sheet:"expenses", row }); setSync($("#expSync"),"ok","已同步"); }catch(err){ setSync($("#expSync"),"err","新增同步失敗"); } }
+    if (Sheet.on()) write("#expSync", { action:"add", sheet:"expenses", row });
     else store.set("exp", EXP);
   });
   $("#expTable").addEventListener("click", async e => {
     const d = e.target.closest("[data-del]"); if (!d) return;
     const x = EXP.find(r => r.id === d.dataset.del); if (!x || !confirm(`刪除「${x.item}」？`)) return;
     EXP = EXP.filter(r => r !== x); renderExp();
-    if (Sheet.on()) { try{ await Sheet.post({ action:"delete", sheet:"expenses", id:x.id }); }catch(err){ setSync($("#expSync"),"err","刪除同步失敗"); } }
+    if (Sheet.on()) write("#expSync", { action:"delete", sheet:"expenses", id:x.id });
     else store.set("exp", EXP);
   });
 
@@ -616,8 +756,8 @@
     const c = Sheet.cfg(); const f = $("#sheetForm");
     const el = f.elements;
     if (c){ el.url.value = c.url || ""; el.token.value = c.token || ""; }
-    f.addEventListener("submit", e => { e.preventDefault(); store.set("sheet", { url:el.url.value.trim(), token:el.token.value }); loadFood(); loadExp(); loadPack(); loadFoliage(); });
-    $("#sheetClear").addEventListener("click", () => { store.del("sheet"); f.reset(); loadFood(); loadExp(); loadPack(); loadFoliage(); });
+    f.addEventListener("submit", e => { e.preventDefault(); store.set("sheet", { url:el.url.value.trim(), token:el.token.value }); loadFood(); loadExp(); loadPack(); loadTodo(); loadFoliage(); });
+    $("#sheetClear").addEventListener("click", () => { store.del("sheet"); f.reset(); loadFood(); loadExp(); loadPack(); loadTodo(); loadFoliage(); });
     $("#sheetSeed").addEventListener("click", async () => {
       if (!Sheet.on()) { alert("請先儲存 Web App 網址與通行碼。"); return; }
       if (!confirm("把預設的餐廳清單寫入試算表（只會在 restaurants 分頁是空的時候寫入）？")) return;
@@ -644,13 +784,11 @@
   const truthy = v => v === true || v === "TRUE" || v === "true" || v === 1 || v === "1";
   async function loadPack(){
     if (Sheet.on()){
-      setSync($("#packSync"), "busy", "同步中…");
-      try {
-        let rows = await Sheet.list("packing");
-        if (!rows.length){ await Sheet.post({ action:"seed", sheet:"packing", rows: defaultPack() }); rows = await Sheet.list("packing"); }
-        PACK = rows.map(r => ({ ...r, checked: truthy(r.checked), order: Number(r.order) || 0 }));
-        setSync($("#packSync"), "ok", "已連線 Google Sheet");
-      } catch(e){ console.error("[tk26] packing", e); PACK = store.get("pack", null) || defaultPack(); setSync($("#packSync"), "err", "連線失敗：" + errText(e)); }
+      let rows = await loadShared("packing", "#packSync", () => store.get("pack", null) || defaultPack());
+      if (!rows.length && !Sheet.cached("packing")?.length){
+        try { await Sheet.post({ action:"seed", sheet:"packing", rows: defaultPack() }); rows = await Sheet.list("packing"); } catch(e){ rows = defaultPack(); }
+      }
+      PACK = rows.map(r => ({ ...r, checked: truthy(r.checked), order: Number(r.order) || 0 }));
     } else { PACK = store.get("pack", null) || defaultPack(); setSync($("#packSync"), "", "本機模式"); }
     renderPack();
   }
@@ -666,10 +804,9 @@
       </div>`;
     }).join("");
   }
-  async function packSave(action, payload){
+  function packSave(action, payload){
     if (!Sheet.on()){ store.set("pack", PACK); return; }
-    try { await Sheet.post({ sheet:"packing", action, ...payload }); setSync($("#packSync"), "ok", "已同步"); }
-    catch(e){ setSync($("#packSync"), "err", "同步失敗：" + errText(e)); }
+    return write("#packSync", { sheet:"packing", action, ...payload });
   }
   $("#packCols").addEventListener("change", e => {
     const id = e.target.dataset.pid; if (!id) return;
@@ -692,14 +829,50 @@
     PACK.push(row); renderPack();
     packSave("add", { row });
   });
-  $("#packReset").addEventListener("click", () => {
+  $("#packReset").addEventListener("click", async () => {
     if (!confirm("把所有勾選清掉？")) return;
-    PACK.filter(r => r.checked).forEach(r => { r.checked = false; packSave("update", { id:r.id, row:{ checked:false } }); });
-    renderPack(); if (!Sheet.on()) store.set("pack", PACK);
+    const ops = PACK.filter(r => r.checked).map(r => { r.checked = false; return { action:"update", id:r.id, row:{ checked:false } }; });
+    renderPack();
+    if (!Sheet.on()){ store.set("pack", PACK); return; }
+    if (!ops.length) return;
+    // 新版 Apps Script：一次送完；舊版不認得 batch 就一筆一筆送
+    try { const ok = await Outbox.send({ action:"batch", sheet:"packing", ops }); setSync($("#packSync"), ok ? "ok" : "err", ok ? "已同步" : "離線：先存在手機" + pendingText()); }
+    catch(e){
+      if (!/unknown action/.test(e.message)) return setSync($("#packSync"), "err", "同步失敗：" + errText(e));
+      for (const op of ops) await packSave("update", { id:op.id, row:op.row });
+    }
   });
 
+  /* ---------- 入境・緊急：點一下複製 ---------- */
+  $("#sec-info").addEventListener("click", async e => {
+    const b = e.target.closest("[data-copy]"); if (!b) return;
+    const lbl = b.querySelector("span");
+    try { await navigator.clipboard.writeText(b.dataset.copy); b.classList.add("done"); lbl.textContent = "已複製"; }
+    catch(err){ lbl.textContent = "請長按選取"; }
+    setTimeout(() => { b.classList.remove("done"); lbl.textContent = b.dataset.label || "複製"; }, 1600);
+  });
+
+  /* ---------- 回到前景／恢復網路：補傳、重新讀另一個人的修改 ---------- */
+  let lastShared = Date.now();
+  function refreshShared(force){
+    if (!Sheet.on() || (!force && Date.now() - lastShared < 5*60e3)) return;
+    lastShared = Date.now(); loadExp(); loadPack(); loadTodo();
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    Outbox.flush(); refreshShared(false);
+    if (boardDay === tripDayToday() && $("#sec-board").classList.contains("on")) renderBoard();
+  });
+  window.addEventListener("online", () => Outbox.flush().then(() => refreshShared(true)));
+
+  /* ---------- 離線：service worker（只在 https 或 localhost） ---------- */
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost"))
+    window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(e => console.warn("[tk26] sw", e)));
+
   /* ---------- boot ---------- */
+  $$("[data-ph]").forEach(el => el.outerHTML = PH(el.dataset.ph));
   renderOverview(); renderBoard(); renderEvents(); renderTodo(); renderTax();
-  loadFood(); loadExp(); loadPack(); loadFoliage(); loadWeather();
-  show(location.hash.slice(1));
+  loadFood(); loadExp(); loadPack(); loadTodo(); loadFoliage(); loadWeather();
+  // 旅行期間打開網站，直接進行程看板（今天、下一站）
+  show(location.hash.slice(1) || (tripDayToday() ? "board" : "overview"));
 })();

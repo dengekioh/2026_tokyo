@@ -4,7 +4,8 @@
  *
  * 1. 在試算表「擴充功能 → Apps Script」貼上這整份程式碼。
  * 2. 左側「專案設定 → 指令碼屬性」新增：TOKEN = 你自己想的通行碼。
- * 3. 執行一次 setup()（會要求授權），自動建立 restaurants / expenses / packing 的欄位。
+ * 3. 執行一次 setup()（會要求授權），自動建立 restaurants / expenses / packing / todos 的欄位。
+ *    （v4.3 新增 todos 分頁：預約待辦的勾選兩支手機共用。更新程式碼後要再執行一次 setup()）
  * 4. 「部署 → 管理部署作業 → 編輯 → 版本：新版本 → 部署」（網址不變）。
  *    第一次部署：「部署 → 新增部署作業 → 網頁應用程式」：執行身分＝我，存取權＝所有人。
  * 5. 把 …/exec 網址和通行碼，貼到網站「消費表 → Google Sheet 同步設定」。
@@ -15,10 +16,11 @@ const HEADERS = {
   restaurants: ["id","name","type","tabelog","tabelogReviews","google","googleReviews","area","closed","reserve","day","url"],
   expenses:    ["id","day","cat","item","amount","pay","note","created"],
   packing:     ["id","person","item","checked","note","order"],
-  foliage:     ["id","name","url","status","desc","forecast","asOf","fetched","ok"]
+  foliage:     ["id","name","url","status","desc","forecast","asOf","fetched","ok"],
+  todos:       ["id","done","updated"]
 };
 // 這些欄位保持數字／布林，其餘一律設成純文字（避免「1/1」被轉成日期）
-const NON_TEXT = ["tabelog","tabelogReviews","google","googleReviews","amount","day","checked","order","ok"];
+const NON_TEXT = ["tabelog","tabelogReviews","google","googleReviews","amount","day","checked","order","ok","done"];
 
 function setup(){
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -65,32 +67,49 @@ function doGet(e){
   return json_({ ok:false, error:"use POST" });
 }
 
+/* 單筆寫入：add 遇到同一個 id 就改成更新（網站沒網路時會重送，不會重複新增） */
+function write_(sh, head, op){
+  if (op.action === "add"){
+    const r = rowIndex_(sh, op.row.id);
+    if (r > 0){ sh.getRange(r, 1, 1, head.length).setValues([head.map(h => op.row[h] ?? "")]); return { updated:true }; }
+    sh.appendRow(head.map(h => op.row[h] ?? ""));
+    return { added:true };
+  }
+  if (op.action === "update"){
+    // 只改傳進來的欄位，例如 { checked:true }
+    const r = rowIndex_(sh, op.id);
+    if (r < 0) return { updated:false };
+    Object.keys(op.row || {}).forEach(k => {
+      const c = head.indexOf(k);
+      if (c > 0) sh.getRange(r, c + 1).setValue(op.row[k]);
+    });
+    return { updated:true };
+  }
+  if (op.action === "delete"){
+    const r = rowIndex_(sh, op.id);
+    if (r > 0) sh.deleteRow(r);
+    return { deleted: r > 0 };
+  }
+  throw new Error("unknown action");
+}
+
 function doPost(e){
-  const lock = LockService.getScriptLock(); lock.waitLock(10000);
+  const lock = LockService.getScriptLock();
+  let locked = false;
   try {
     const b = JSON.parse(e.postData.contents || "{}");
     if (!authed_(b.token)) return json_({ ok:false, error:"bad token" });
+    // 讀取不用排隊；寫入才上鎖（等太久回 busy，網站會稍後重送）
     if (b.action === "list") return json_({ ok:true, rows: rows_(b.sheet) });
+    if (!lock.tryLock(20000)) return json_({ ok:false, error:"busy" });
+    locked = true;
     const sh = sheet_(b.sheet), head = HEADERS[b.sheet];
 
-    if (b.action === "add"){
-      sh.appendRow(head.map(h => b.row[h] ?? ""));
-      return json_({ ok:true });
-    }
-    if (b.action === "update"){
-      // 只改傳進來的欄位，例如 { checked:true }
-      const r = rowIndex_(sh, b.id);
-      if (r < 0) return json_({ ok:true, updated:false });
-      Object.keys(b.row || {}).forEach(k => {
-        const c = head.indexOf(k);
-        if (c > 0) sh.getRange(r, c + 1).setValue(b.row[k]);
-      });
-      return json_({ ok:true, updated:true });
-    }
-    if (b.action === "delete"){
-      const r = rowIndex_(sh, b.id);
-      if (r > 0) sh.deleteRow(r);
-      return json_({ ok:true, deleted: r > 0 });
+    if (["add","update","delete"].includes(b.action)) return json_(Object.assign({ ok:true }, write_(sh, head, b)));
+    if (b.action === "batch"){
+      // 一次送很多筆（例如「清掉全部勾選」）
+      const results = (b.ops || []).map(op => write_(sh, head, op));
+      return json_({ ok:true, count: results.length });
     }
     if (b.action === "seed"){
       // 只在分頁是空的時候寫入
@@ -121,7 +140,7 @@ function doPost(e){
     }
     return json_({ ok:false, error:"unknown action" });
   } catch (err) { return json_({ ok:false, error:String(err.message || err) }); }
-  finally { lock.releaseLock(); }
+  finally { if (locked) lock.releaseLock(); }
 }
 
 /* ---------- 紅葉：tenki.jp 每 6 小時更新（只寫進這份試算表，網站要通行碼才讀得到） ---------- */

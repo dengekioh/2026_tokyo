@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f7f4ee">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="assets/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="東京 2026">
@@ -12,9 +15,9 @@
 <title>2026 東京賞楓之旅</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="assets/style.css?v=202611252300">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="assets/style.css?v=202611260100">
 <script>
   // theme: ?theme=indigo|maple overrides the saved choice
   (function(){var q=new URLSearchParams(location.search).get('theme');var s=null;try{s=localStorage.getItem('tk26-theme')}catch(e){}
@@ -23,7 +26,7 @@
 </script>
 </head>
 <body>
-<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol><symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></symbol><symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/></symbol><symbol id="i-bowl" viewBox="0 0 24 24"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12l3 3 5-6"/></symbol><symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 6v14M3 14h18v6M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="1.6"/></symbol><symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol><symbol id="i-bag" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></symbol><symbol id="i-yen" viewBox="0 0 24 24"><path d="M7 4l5 7 5-7M12 11v9M8 13h8M8 16.5h8"/></symbol><symbol id="i-mode" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol></svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol><symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></symbol><symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/></symbol><symbol id="i-bowl" viewBox="0 0 24 24"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12l3 3 5-6"/></symbol><symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 6v14M3 14h18v6M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="1.6"/></symbol><symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol><symbol id="i-bag" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></symbol><symbol id="i-yen" viewBox="0 0 24 24"><path d="M7 4l5 7 5-7M12 11v9M8 13h8M8 16.5h8"/></symbol><symbol id="i-mode" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol><symbol id="i-pass" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M9 16h6"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol></svg>
 <div class="shell">
   <aside class="side">
     <span class="kicker">Tokyo · 2026</span>
@@ -36,6 +39,7 @@
       <a href="#food" data-sec="food"><svg class="ic"><use href="#i-bowl"/></svg>餐廳</a>
       <a href="#todo" data-sec="todo"><svg class="ic"><use href="#i-check"/></svg>預約待辦</a>
       <a href="#stay" data-sec="stay"><svg class="ic"><use href="#i-bed"/></svg>住宿・航班</a>
+      <a href="#info" data-sec="info"><svg class="ic"><use href="#i-pass"/></svg>入境・緊急</a>
       <a href="#tax" data-sec="tax"><svg class="ic"><use href="#i-receipt"/></svg>退稅新制</a>
       <a href="#pack" data-sec="pack"><svg class="ic"><use href="#i-bag"/></svg>攜帶物品</a>
       <a href="#expense" data-sec="expense"><svg class="ic"><use href="#i-yen"/></svg>消費表</a>
@@ -142,7 +146,8 @@
     <!-- 05 todo -->
     <section class="sec" id="sec-todo">
       <div class="sec-head"><span class="sec-n">05</span><h2>預約待辦</h2></div>
-      <p class="lede">勾選狀態只存在這台裝置。</p>
+      <p class="lede">設定 Google Sheet 後，勾選會同步到試算表，兩支手機看到同一份；還沒設定時只存在這台裝置。</p>
+      <div class="toolbar"><span class="sync" id="todoSync"><i class="dot"></i><span>本機模式</span></span></div>
       <div class="panel"><ul class="todo" id="todoList"></ul></div>
     </section>
 
@@ -155,7 +160,7 @@
           <h3 style="font-size:18px;margin:8px 0 10px">品川王子大飯店 Main Tower</h3>
           <dl class="kv">
             <dt>地址</dt><dd>東京都港区高輪 4-10-30（品川站高輪口對面）</dd>
-            <dt>電話</dt><dd>+81-3-3440-1111</dd>
+            <dt>電話</dt><dd><a href="https://www.princehotels.com/shinagawa/about-us/" target="_blank" rel="noopener">看飯店官網 ↗</a> <small class="muted">（不放在公開網站）</small></dd>
             <dt>房型</dt><dd>Main Tower 禁菸雙床房（18–27F）</dd>
             <dt>入住人數</dt><dd>11/29–12/1：1 人；12/1 起 2 人（已寫信詢問價差）</dd>
             <dt>方案</dt><dd>【会員】2 連泊以上 エコプラン</dd>
@@ -201,15 +206,63 @@
       </div>
     </section>
 
-    <!-- 07 tax -->
+    <!-- 07 info -->
+    <section class="sec" id="sec-info">
+      <div class="sec-head"><span class="sec-n">07</span><h2>入境・緊急</h2></div>
+      <p class="lede">Visit Japan Web 兩個人各自用自己的帳號登錄；入境審查和海關申報已合併成一個 QR Code。英文欄位按「複製」再貼上，欄位名稱以 VJW 畫面為準。<a href="https://services.digital.go.jp/visit-japan-web/" target="_blank" rel="noopener">VJW 官網 ↗</a></p>
+      <div class="grid2">
+        <div class="panel">
+          <span class="tag t-accent"><i data-ph="identification-card"></i>VJW・入境資料</span>
+          <h3 class="info-h">旅程</h3>
+          <dl class="kv copykv">
+            <dt>入境目的</dt><dd><span class="v">Sightseeing（觀光）</span></dd>
+            <dt>出發地</dt><dd><span class="v">Taiwan</span></dd>
+            <dt>Charles</dt><dd><span class="v">11/29 抵達羽田 HND · Peach <b>MM860</b> · 停留 8 天（11/29–12/06）</span><button class="copy" type="button" data-copy="MM860" data-label="複製班號"><i data-ph="copy"></i><span>複製班號</span></button></dd>
+            <dt>Cris</dt><dd><span class="v">12/01 抵達成田 NRT · STARLUX <b>JX314</b> · 停留 6 天（12/01–12/06）</span><button class="copy" type="button" data-copy="JX314" data-label="複製班號"><i data-ph="copy"></i><span>複製班號</span></button></dd>
+          </dl>
+          <h3 class="info-h">日本的住宿（滞在先）</h3>
+          <dl class="kv copykv">
+            <dt>Hotel name</dt><dd><span class="v">Shinagawa Prince Hotel</span><button class="copy" type="button" data-copy="Shinagawa Prince Hotel" data-label="複製"><i data-ph="copy"></i><span>複製</span></button></dd>
+            <dt>Postal code</dt><dd><span class="v">108-8611</span><button class="copy" type="button" data-copy="108-8611" data-label="複製"><i data-ph="copy"></i><span>複製</span></button></dd>
+            <dt>Prefecture</dt><dd><span class="v">Tokyo</span></dd>
+            <dt>City</dt><dd><span class="v">Minato-ku</span><button class="copy" type="button" data-copy="Minato-ku" data-label="複製"><i data-ph="copy"></i><span>複製</span></button></dd>
+            <dt>Address</dt><dd><span class="v">4-10-30 Takanawa</span><button class="copy" type="button" data-copy="4-10-30 Takanawa" data-label="複製"><i data-ph="copy"></i><span>複製</span></button></dd>
+            <dt>Phone</dt><dd><span class="v"><a href="https://www.princehotels.com/shinagawa/about-us/" target="_blank" rel="noopener">看飯店官網 ↗</a> <small class="muted">（不放在公開網站）</small></span></dd>
+          </dl>
+          <p class="small muted" style="margin-top:10px">一行版：4-10-30 Takanawa, Minato-ku, Tokyo 108-8611 <button class="copy" type="button" data-copy="4-10-30 Takanawa, Minato-ku, Tokyo 108-8611" data-label="複製"><i data-ph="copy"></i><span>複製</span></button></p>
+        </div>
+        <div>
+          <div class="panel taxi">
+            <span class="tag t-accent"><i data-ph="taxi"></i>計程車・給司機看</span>
+            <p class="taxi-ja">品川プリンスホテル<br>メインタワー</p>
+            <p class="taxi-addr">〒108-8611 東京都港区高輪4-10-30<br>品川駅 高輪口の向かい</p>
+            <p class="taxi-say">「このホテルまでお願いします。」<small>請載我到這間飯店</small></p>
+            <button class="copy" type="button" data-copy="〒108-8611 東京都港区高輪4-10-30 品川プリンスホテル メインタワー" data-label="複製日文地址"><i data-ph="copy"></i><span>複製日文地址</span></button>
+          </div>
+          <div class="panel" style="margin-top:16px">
+            <span class="tag t-stop"><i data-ph="first-aid-kit"></i>緊急</span>
+            <div class="sos">
+              <a class="sos-btn" href="tel:110"><b>110</b><span>警察</span></a>
+              <a class="sos-btn" href="tel:119"><b>119</b><span>救護車・火災</span></a>
+            </div>
+            <ul class="info-list">
+              <li>護照遺失、重大意外：<a href="https://www.roc-taiwan.org/jp/" target="_blank" rel="noopener">台北駐日經濟文化代表處 ↗</a>（聯絡方式看官網）</li>
+              <li>VJW 的 QR Code 先截圖存在相簿，沒網路也能出示。</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 tax -->
     <section class="sec" id="sec-tax">
-      <div class="sec-head"><span class="sec-n">07</span><h2>日本退稅新制（2026/11/01 起）</h2></div>
+      <div class="sec-head"><span class="sec-n">08</span><h2>日本退稅新制（2026/11/01 起）</h2></div>
       <div id="taxBody"></div>
     </section>
 
     <!-- 08 packing -->
     <section class="sec" id="sec-pack">
-      <div class="sec-head"><span class="sec-n">08</span><h2>攜帶物品</h2></div>
+      <div class="sec-head"><span class="sec-n">09</span><h2>攜帶物品</h2></div>
       <p class="lede">兩個人各一欄。設定 Google Sheet 後，勾選、新增、刪除都會同步，兩支手機看到同一份；日本插座和台灣一樣是兩腳扁插（100V），不用轉接頭。</p>
       <div class="toolbar">
         <span class="sync" id="packSync"><i class="dot"></i><span>本機模式</span></span>
@@ -221,14 +274,14 @@
 
     <!-- 09 expense -->
     <section class="sec" id="sec-expense">
-      <div class="sec-head"><span class="sec-n">09</span><h2>消費表</h2></div>
+      <div class="sec-head"><span class="sec-n">10</span><h2>消費表</h2></div>
       <p class="lede">記帳用。新增一筆就會同步到 Google Sheet（還沒設定時只存在這台裝置）。</p>
       <div class="panel" style="margin-bottom:16px">
         <form class="form" id="expForm">
           <label>日期<select name="day" id="expDay"></select></label>
           <label>分類<select name="cat"><option>餐飲</option><option>交通</option><option>門票</option><option>購物</option><option>住宿</option><option>其他</option></select></label>
           <label>品項<input name="item" required></label>
-          <label>金額（日圓）<input name="amount" type="number" required min="0"></label>
+          <label>金額（日圓）<input name="amount" type="number" inputmode="numeric" pattern="[0-9]*" required min="0"></label>
           <label>付款<select name="pay"><option>現金</option><option>信用卡</option><option>Suica</option><option>PayPay</option></select></label>
           <label>備註<input name="note"></label>
           <button class="btn" type="submit">新增一筆</button>
@@ -237,7 +290,7 @@
           <span class="sync" id="expSync"><i class="dot"></i><span>本機模式</span></span>
           <span style="flex:1"></span>
           <label class="small muted">匯率 1 JPY =
-            <input id="fx" type="number" step="0.001" style="width:80px;border:1px solid var(--line);border-radius:6px;padding:2px 6px"> TWD</label>
+            <input id="fx" type="number" inputmode="decimal" step="0.001" style="width:88px;border:1px solid var(--line);border-radius:6px;padding:4px 6px"> TWD</label>
         </div>
       </div>
       <div class="grid4" id="expStats"></div>
@@ -269,7 +322,7 @@
       </details>
     </section>
 
-    <footer>資料來源：各官方網站、Tabelog、Google Maps、Weathernews、tenki.jp、國立天文台（2026-11-18～23 查詢）。<span id="ver2"></span></footer>
+    <footer>資料來源：各官方網站、Tabelog、Google Maps、Weathernews、tenki.jp、國立天文台（2026-11-18～23 查詢）。</footer>
   </main>
 </div>
 
@@ -279,10 +332,10 @@
   <a href="#map" data-sec="map"><svg class="ic"><use href="#i-map"/></svg>地圖</a>
   <a href="#food" data-sec="food"><svg class="ic"><use href="#i-bowl"/></svg>餐廳</a>
   <a href="#expense" data-sec="expense"><svg class="ic"><use href="#i-yen"/></svg>記帳</a>
-  <button id="moreBtn" type="button"><svg class="ic"><use href="#i-menu"/></svg>更多</button>
+  <button id="moreBtn" type="button" aria-expanded="false" aria-controls="sheet"><svg class="ic"><use href="#i-menu"/></svg>更多</button>
 </nav>
 <div class="sheet-bg" id="sheetBg"></div>
-<div class="sheet" id="sheet" aria-hidden="true">
+<div class="sheet" id="sheet" aria-hidden="true" inert>
   <div class="grip"></div>
   <a href="#overview" data-sec="overview"><svg class="ic"><use href="#i-home"/></svg>總覽</a>
   <a href="#board" data-sec="board"><svg class="ic"><use href="#i-cal"/></svg>行程看板</a>
@@ -291,15 +344,16 @@
   <a href="#food" data-sec="food"><svg class="ic"><use href="#i-bowl"/></svg>餐廳</a>
   <a href="#todo" data-sec="todo"><svg class="ic"><use href="#i-check"/></svg>預約待辦</a>
   <a href="#stay" data-sec="stay"><svg class="ic"><use href="#i-bed"/></svg>住宿・航班</a>
+  <a href="#info" data-sec="info"><svg class="ic"><use href="#i-pass"/></svg>入境・緊急</a>
   <a href="#tax" data-sec="tax"><svg class="ic"><use href="#i-receipt"/></svg>退稅新制</a>
   <a href="#pack" data-sec="pack"><svg class="ic"><use href="#i-bag"/></svg>攜帶物品</a>
   <a href="#expense" data-sec="expense"><svg class="ic"><use href="#i-yen"/></svg>消費表</a>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
-<script src="assets/data.js?v=202611252300"></script>
-<script src="assets/tax.js?v=202611252300"></script>
-<script src="assets/app.js?v=202611252300"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
+<script defer src="assets/data.js?v=202611260100"></script>
+<script defer src="assets/tax.js?v=202611260100"></script>
+<script defer src="assets/app.js?v=202611260100"></script>
 </body>
 </html>
