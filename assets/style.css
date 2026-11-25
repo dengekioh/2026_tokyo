@@ -406,11 +406,15 @@ details.panel>summary{cursor:pointer;font-weight:700;color:var(--ink)}
   .daytab span{font-size:14px}
   #sec-board .toolbar{display:none}
   .day-title{font-size:var(--fs-md);margin:10px 0 10px}
-  .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;margin:0 0 10px;background:var(--tint);border-radius:var(--r)}
-  .seg button{justify-content:center;border:0;background:none;padding:7px 4px;border-radius:var(--r-sm);font-size:14px;color:var(--muted)}
-  .seg button em{font-style:normal;font-size:var(--fs-xs);color:var(--faint)}
-  .seg button.on{background:var(--panel);color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(40,30,20,.12)}
+  .seg{position:relative;display:grid;grid-template-columns:repeat(3,1fr);padding:4px;margin:0 0 10px;background:var(--tint);border-radius:var(--r)}
+  .seg-ind{position:absolute;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);border-radius:var(--r-sm);background:var(--panel);
+    box-shadow:0 1px 3px rgba(40,30,20,.14);transform:translateX(calc(100% * var(--i,0)));transition:transform .35s cubic-bezier(.3,.8,.25,1)}
+  .seg button{position:relative;z-index:1;justify-content:center;border:0;background:none;padding:7px 4px;border-radius:var(--r-sm);font-size:14px;color:var(--muted);transition:color .25s}
+  .seg button em{font-style:normal;font-size:var(--fs-xs);color:var(--faint);transition:color .25s}
+  .seg button.on{color:var(--ink);font-weight:700}
   .seg button.on em{color:var(--dc,var(--accent))}
+  .board3.one .col.in-r{animation:slideInR .35s cubic-bezier(.3,.8,.25,1)}
+  .board3.one .col.in-l{animation:slideInL .35s cubic-bezier(.3,.8,.25,1)}
   .board3.one .col{display:none}
   .board3.one .col.show{display:flex;background:none;border:0}
   .board3.one .col.show .col-head{display:none}
@@ -462,6 +466,8 @@ details.panel>summary{cursor:pointer;font-weight:700;color:var(--ink)}
   .rank li::before{left:14px}
   .todo.pack li{padding:10px 4px}
 }
+@keyframes slideInR{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes slideInL{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
 @media (hover:none){
   .todo.pack .x{opacity:.6}
   .card:active{transform:scale(.985)}

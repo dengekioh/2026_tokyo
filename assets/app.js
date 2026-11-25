@@ -265,7 +265,7 @@
       ${wxHTML(d)}
       <div class="day-meta"><span class="sun">🌅 日出 <b>${d.sun[0]}</b></span><span class="sun">🌇 日落 <b>${d.sun[1]}</b></span><span class="who">👤 ${esc(d.who)}</span></div>
       ${d.plans ? `<div class="plan-tabs" role="tablist" aria-label="版本">${d.plans.map(p => `<button role="tab" class="plan-tab ${planOf(d.id)===p.key?"on":""}" data-plan="${p.key}" aria-selected="${planOf(d.id)===p.key}"><b>${esc(p.label)}</b><span>${esc(p.desc)}</span></button>`).join("")}<small class="muted">只顯示所選版本；標「限定」的是兩版不同的地方</small></div>` : ""}
-      ${phone ? `<div class="seg" role="tablist" aria-label="時段">${SLOTS.map(([k, label]) => `<button role="tab" class="${seg===k?"on":""}" data-seg="${k}" aria-selected="${seg===k}">${label} <em>${list.filter(i => i.slot === k).length}</em></button>`).join("")}</div>` : ""}
+      ${phone ? `<div class="seg" role="tablist" aria-label="時段" style="--i:${SLOTS.findIndex(([k]) => k === seg)}"><i class="seg-ind" aria-hidden="true"></i>${SLOTS.map(([k, label]) => `<button role="tab" class="${seg===k?"on":""}" data-seg="${k}" aria-selected="${seg===k}">${label} <em>${list.filter(i => i.slot === k).length}</em></button>`).join("")}</div>` : ""}
       <div class="board3${phone?" one":""}">${SLOTS.map(([k, label, range]) => {
         const cards = list.filter(i => i.slot === k);
         return `<div class="col${seg===k?" show":""}"><div class="col-head"><div class="d"><span>${label}</span><small>${range}</small><em>${cards.length}</em></div></div>
@@ -281,6 +281,18 @@
     return (SLOTS.find(([k]) => list.some(i => i.slot === k)) || SLOTS[0])[0];
   }
   matchMedia("(max-width:760px)").addEventListener("change", () => renderBoard());
+  /* 時段切換：指示條滑過去，內容從左／右滑入（不重畫整個看板） */
+  function switchSeg(k){
+    const cur = SEG[boardDay] || $("#board .seg button.on")?.dataset.seg;
+    const from = SLOTS.findIndex(([x]) => x === cur), to = SLOTS.findIndex(([x]) => x === k);
+    if (from === to) return;
+    SEG[boardDay] = k;
+    const segEl = $("#board .seg"); segEl.style.setProperty("--i", to);
+    $$("button", segEl).forEach(b => { const on = b.dataset.seg === k; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+    const cols = $$("#board .board3 .col");
+    cols.forEach((c, n) => { c.classList.toggle("show", n === to); c.classList.toggle("in-l", false); c.classList.toggle("in-r", false); });
+    const c = cols[to]; void c.offsetWidth; c.classList.add(to > from ? "in-r" : "in-l");
+  }
   function persist(){
     const saved = {};
     ITEMS.forEach(i => saved[i.id] = { day:i.day, order:i.order, slot:i.slot });
@@ -310,7 +322,7 @@
   });
   $("#board").addEventListener("click", e => {
     const sg = e.target.closest("[data-seg]");
-    if (sg){ SEG[boardDay] = sg.dataset.seg; renderBoard(); return; }
+    if (sg){ switchSeg(sg.dataset.seg); return; }
     const pl = e.target.closest("[data-plan]");
     if (pl){ PLAN[boardDay] = pl.dataset.plan; store.set("plan", PLAN); renderBoard(); if (window._map) drawMarkers(); return; }
     const go = e.target.closest("[data-go]");
