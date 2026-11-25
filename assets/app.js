@@ -39,7 +39,7 @@
     document.documentElement.setAttribute("data-theme", t);
     try{ localStorage.setItem("tk26-theme", t); }catch(e){}
     $$("#themeSwitch button").forEach(b => b.classList.toggle("on", b.dataset.theme === t));
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", t === "maple" ? "#b4432a" : "#2f43c9");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#f7f4ee");
     if (window._map) refreshMapStyle();
   }
   $$("#themeSwitch button").forEach(b => b.addEventListener("click", () => setTheme(b.dataset.theme)));
@@ -174,8 +174,8 @@
     const lo = w.min != null && w.min !== "" ? +w.min : null, hi = w.max != null && w.max !== "" ? +w.max : null;
     const coat = lo == null ? null : lo <= 5 ? "🧥 很冷：穿厚外套、羽絨" : lo <= 10 ? "🧥 早晚冷：外套＋保暖層" : "👕 薄外套就好";
     const rain = w.slots
-      ? [["am","上午"],["pm","下午"],["night","晚上"]].map(([k, l]) => `<span class="slot"><small>${l}</small><b>${w.slots[k] != null ? w.slots[k] + "%" : "—"}</b></span>`).join("")
-      : `<span class="slot"><small>全天</small><b>${maxPop != null ? maxPop + "%" : "—"}</b></span>`;
+      ? [["am","上午"],["pm","下午"],["night","晚上"]].map(([k, l]) => `<span class="slot"><small>${l}</small><b>${w.slots[k] != null ? w.slots[k] + "%" : "—"}</b><i style="--p:${w.slots[k] ?? 0}%"></i></span>`).join("")
+      : `<span class="slot"><small>全天</small><b>${maxPop != null ? maxPop + "%" : "—"}</b><i style="--p:${maxPop ?? 0}%"></i></span>`;
     const relZh = { A:"高", B:"中", C:"低，可能會變" }[w.rel];
     const when = w.report ? w.report.slice(5,16).replace("T"," ").replace("-","/") : "";
     const fx = kind === "rain" || kind === "shower" ? `<i class="drop"></i><i class="drop"></i><i class="drop"></i>` : kind === "snow" ? `<i class="flake">❄</i><i class="flake">❄</i>` : "";
@@ -184,8 +184,8 @@
       <div class="wx-main"><div class="wx-sum">${esc(zh)}</div>
         <div class="wx-temp">${hi != null ? `<span><small>最高</small><b>${hi}°</b></span>` : ""}${lo != null ? `<span><small>最低</small><b>${lo}°</b></span>` : ""}</div></div>
       <div class="wx-rain"><span class="lbl">降雨機率</span>${rain}</div>
-      <div class="wx-tips">${umb ? `<span class="tip ${umb[0]}">${umb[1]}</span>` : ""}${coat ? `<span class="tip">${coat}</span>` : ""}</div>
-      <div class="wx-src">${relZh ? `預報可信度：${relZh} · ` : ""}<a href="${url}" target="_blank" rel="noopener">氣象廳 ${when} 發表 ↗</a></div>
+      <div class="wx-tips">${umb ? `<span class="tip ${umb[0]}">${umb[1]}</span>` : ""}${coat ? `<span class="tip">${coat}</span>` : ""}
+      <span class="wx-src">${relZh ? `預報可信度：${relZh} · ` : ""}<a href="${url}" target="_blank" rel="noopener">氣象廳 ${when} 發表 ↗</a></span></div>
     </div>`;
   }
 
@@ -220,7 +220,7 @@
       return `<a href="${esc(url)}" target="_blank" rel="noopener">tenki.jp ↗</a><br><small class="muted">${Sheet.on() ? "尚無資料（執行 installTrigger）" : "輸入通行碼後顯示即時"}</small>`;
     };
     $("#ovFoliage").innerHTML = `<tr><th>地點</th><th>你去</th><th>手動查詢</th><th>tenki.jp 即時</th><th></th></tr>` +
-      T.foliage.map(f => `<tr><td><b>${esc(f.spot)}</b></td><td class="mono" data-l="你去">${f.visit}</td><td data-l="手動查詢">${esc(f.status)}</td><td data-l="tenki.jp">${live(f)}</td><td><span class="tag ${V[f.verdict][0]}">${V[f.verdict][1]}</span></td></tr>`).join("");
+      T.foliage.map(f => `<tr><td class="name">${esc(f.spot)}</td><td class="mono" data-l="你去">${f.visit}</td><td data-l="手動查詢">${esc(f.status)}</td><td data-l="tenki.jp">${live(f)}</td><td data-l="判斷"><span class="tag ${V[f.verdict][0]}">${V[f.verdict][1]}</span></td></tr>`).join("");
     $("#ovFolNote").innerHTML = `手動查詢：11/21–24。即時：tenki.jp，Apps Script 每 6 小時更新${folFetched ? `（最後抓取 ${esc(folFetched)}）` : ""}。其他：` +
       T.foliageLinks.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)}</a>`).join("・");
   }
@@ -256,19 +256,31 @@
     $("#boardLegend").innerHTML = Object.entries(CAT).map(([k,v]) => `<span><i style="background:var(--c-${k})"></i>${v}</span>`).join("");
     $("#boardTabs").innerHTML = T.days.map(d => `<button role="tab" class="daytab ${d.id===boardDay?"on":""}" data-day="${d.id}" style="--dc:var(--d${d.id})" aria-selected="${d.id===boardDay}">
       <b>D${d.id}${d.id===tripDayToday()?' · 今天':''}</b><span>${d.date}<small>（${d.dow}）</small></span><em>${byDay(d.id).length}</em></button>`).join("");
-    $(".daytab.on")?.scrollIntoView({ block:"nearest", inline:"center", behavior:"smooth" });
+    const tabs = $("#boardTabs"), on = $(".daytab.on", tabs);
+    if (on && tabs.scrollWidth > tabs.clientWidth) tabs.scrollTo({ left: on.offsetLeft - (tabs.clientWidth - on.offsetWidth)/2, behavior:"smooth" });
     const d = T.days.find(x => x.id === boardDay), list = byDay(boardDay);
+    $("#board").style.setProperty("--dc", `var(--d${d.id})`);
+    const phone = isPhone(), seg = phone ? slotFor(d.id, list) : null;
     $("#board").innerHTML = `<div class="day-title" style="--dc:var(--d${d.id})"><b>D${d.id}</b> ${d.date}（${d.dow}）<span>${esc(d.title)}</span><em class="nav-hint">← → 切換天數</em></div>
       ${wxHTML(d)}
       <div class="day-meta"><span class="sun">🌅 日出 <b>${d.sun[0]}</b></span><span class="sun">🌇 日落 <b>${d.sun[1]}</b></span><span class="who">👤 ${esc(d.who)}</span></div>
       ${d.plans ? `<div class="plan-tabs" role="tablist" aria-label="版本">${d.plans.map(p => `<button role="tab" class="plan-tab ${planOf(d.id)===p.key?"on":""}" data-plan="${p.key}" aria-selected="${planOf(d.id)===p.key}"><b>${esc(p.label)}</b><span>${esc(p.desc)}</span></button>`).join("")}<small class="muted">只顯示所選版本；標「限定」的是兩版不同的地方</small></div>` : ""}
-      <div class="board3" style="--dc:var(--d${d.id})">${SLOTS.map(([k, label, range]) => {
+      ${phone ? `<div class="seg" role="tablist" aria-label="時段">${SLOTS.map(([k, label]) => `<button role="tab" class="${seg===k?"on":""}" data-seg="${k}" aria-selected="${seg===k}">${label} <em>${list.filter(i => i.slot === k).length}</em></button>`).join("")}</div>` : ""}
+      <div class="board3${phone?" one":""}">${SLOTS.map(([k, label, range]) => {
         const cards = list.filter(i => i.slot === k);
-        return `<div class="col"><div class="col-head"><div class="d"><span>${label}</span><small>${range}</small><em>${cards.length}</em></div></div>
+        return `<div class="col${seg===k?" show":""}"><div class="col-head"><div class="d"><span>${label}</span><small>${range}</small><em>${cards.length}</em></div></div>
           <div class="col-body" data-slot="${k}">${cards.map(cardHTML).join("")}</div></div>`;
       }).join("")}</div>`;
     if (window.Sortable && !isPhone()) $$("#board .col-body").forEach(el => new Sortable(el, { group:"slots", animation:150, delay:150, delayOnTouchOnly:true, ghostClass:"sortable-ghost", onEnd: saveBoard }));
   }
+  /* 手機：一次只看一個時段。今天就依現在時間，其他天選第一個有行程的時段 */
+  const SEG = {};
+  function slotFor(dayId, list){
+    if (SEG[dayId]) return SEG[dayId];
+    if (dayId === tripDayToday()){ const h = new Date(Date.now() + 9*3600e3).getUTCHours(); return h < 12 ? "am" : h < 17 ? "pm" : "night"; }
+    return (SLOTS.find(([k]) => list.some(i => i.slot === k)) || SLOTS[0])[0];
+  }
+  matchMedia("(max-width:760px)").addEventListener("change", () => renderBoard());
   function persist(){
     const saved = {};
     ITEMS.forEach(i => saved[i.id] = { day:i.day, order:i.order, slot:i.slot });
@@ -297,6 +309,8 @@
     if (e.key === "ArrowLeft") setDay(boardDay - 1);
   });
   $("#board").addEventListener("click", e => {
+    const sg = e.target.closest("[data-seg]");
+    if (sg){ SEG[boardDay] = sg.dataset.seg; renderBoard(); return; }
     const pl = e.target.closest("[data-plan]");
     if (pl){ PLAN[boardDay] = pl.dataset.plan; store.set("plan", PLAN); renderBoard(); if (window._map) drawMarkers(); return; }
     const go = e.target.closest("[data-go]");
@@ -430,10 +444,10 @@
     $("#foodTable").innerHTML = `<tr>${th("name","店名")}${th("type","種類")}${th("tabelog","Tabelog")}${th("google","Google")}${th("area","地區")}<th>公休</th><th>預約</th>${th("day","排在")}<th></th></tr>` +
       rows.map(f => `<tr>
         <td class="name">${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>` : `<b>${esc(f.name)}</b>`}</td>
-        <td data-l="種類"><span class="tag t-food">${esc(f.type)}</span></td>
+        <td class="extra" data-l="種類"><span class="tag t-food">${esc(f.type)}</span></td>
         <td class="num" data-l="Tabelog"><span class="score ${Number(f.tabelog)>=3.8?"hi":""}">${f.tabelog!==""&&f.tabelog!=null?Number(f.tabelog).toFixed(2):"—"}</span><br><span class="muted small">${f.tabelogReviews?Number(f.tabelogReviews).toLocaleString()+" 則":""}</span></td>
-        <td class="num" data-l="Google">${f.google!==""&&f.google!=null?Number(f.google).toFixed(1):"—"}<br><span class="muted small">${f.googleReviews?Number(f.googleReviews).toLocaleString()+" 則":""}</span></td>
-        <td data-l="地區">${esc(f.area)}</td><td data-l="公休">${esc(f.closed)}</td><td data-l="預約">${esc(f.reserve)}</td>
+        <td class="num extra" data-l="Google">${f.google!==""&&f.google!=null?Number(f.google).toFixed(1):"—"}<br><span class="muted small">${f.googleReviews?Number(f.googleReviews).toLocaleString()+" 則":""}</span></td>
+        <td data-l="地區">${esc(f.area)}</td><td class="extra" data-l="公休">${esc(f.closed)}</td><td class="extra" data-l="預約">${esc(f.reserve)}</td>
         <td data-l="排在">${f.day?`<span class="tag ${/^Day/.test(f.day)?"t-accent":"t-move"}">${esc(f.day)}</span>`:""}</td>
         <td class="act"><button class="btn danger sm" data-del="${esc(f.id)}">刪除</button></td></tr>`).join("");
   }
@@ -441,7 +455,8 @@
   $("#foodTable").addEventListener("click", async e => {
     const h = e.target.closest("th[data-k]");
     if (h){ const k = h.dataset.k; foodSort = { k, dir: foodSort.k===k ? -foodSort.dir : (["tabelog","google"].includes(k)?-1:1) }; renderFood(); return; }
-    const d = e.target.closest("[data-del]"); if (!d) return;
+    const d = e.target.closest("[data-del]");
+    if (!d){ const tr = e.target.closest("tr"); if (tr && isPhone() && !e.target.closest("a")) tr.classList.toggle("open"); return; }
     const f = FOOD.find(x => x.id === d.dataset.del); if (!f || !confirm(`刪除「${f.name}」？`)) return;
     FOOD = FOOD.filter(x => x !== f); renderFood();
     if (Sheet.on()) { try{ await Sheet.post({ action:"delete", sheet:"restaurants", id:f.id }); }catch(err){ setSync($("#foodSync"),"err","刪除同步失敗"); } }

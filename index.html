@@ -3,15 +3,18 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#b4432a">
+<meta name="theme-color" content="#f7f4ee">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="東京 2026">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍁</text></svg>">
 <title>2026 東京賞楓之旅</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="assets/style.css?v=202611242030">
+<link rel="stylesheet" href="assets/style.css?v=202611251200">
 <script>
   // theme: ?theme=indigo|maple overrides the saved choice
   (function(){var q=new URLSearchParams(location.search).get('theme');var s=null;try{s=localStorage.getItem('tk26-theme')}catch(e){}
@@ -19,21 +22,22 @@
 </script>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol><symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol><symbol id="i-map" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></symbol><symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/></symbol><symbol id="i-bowl" viewBox="0 0 24 24"><path d="M3 11h18a9 9 0 0 1-18 0z"/><path d="M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/></symbol><symbol id="i-check" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 12l3 3 5-6"/></symbol><symbol id="i-bed" viewBox="0 0 24 24"><path d="M3 6v14M3 14h18v6M21 14v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="11" r="1.6"/></symbol><symbol id="i-receipt" viewBox="0 0 24 24"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></symbol><symbol id="i-bag" viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></symbol><symbol id="i-yen" viewBox="0 0 24 24"><path d="M7 4l5 7 5-7M12 11v9M8 13h8M8 16.5h8"/></symbol><symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol></svg>
 <div class="shell">
   <aside class="side">
     <span class="kicker">Tokyo · 2026</span>
     <div class="st">東京賞楓銀杏・聖誕燈飾・YOASOBI<br><span class="muted small">11/29 – 12/06 · 8 天 7 夜</span></div>
     <nav id="nav">
-      <a href="#overview" data-sec="overview"><b>00</b>總覽</a>
-      <a href="#board" data-sec="board"><b>01</b>行程看板</a>
-      <a href="#map" data-sec="map"><b>02</b>地圖</a>
-      <a href="#events" data-sec="events"><b>03</b>點燈・聖誕・紅葉</a>
-      <a href="#food" data-sec="food"><b>04</b>餐廳</a>
-      <a href="#todo" data-sec="todo"><b>05</b>預約待辦</a>
-      <a href="#stay" data-sec="stay"><b>06</b>住宿・航班</a>
-      <a href="#tax" data-sec="tax"><b>07</b>退稅新制</a>
-      <a href="#pack" data-sec="pack"><b>08</b>攜帶物品</a>
-      <a href="#expense" data-sec="expense"><b>09</b>消費表</a>
+      <a href="#overview" data-sec="overview"><svg class="ic"><use href="#i-home"/></svg>總覽</a>
+      <a href="#board" data-sec="board"><svg class="ic"><use href="#i-cal"/></svg>行程看板</a>
+      <a href="#map" data-sec="map"><svg class="ic"><use href="#i-map"/></svg>地圖</a>
+      <a href="#events" data-sec="events"><svg class="ic"><use href="#i-spark"/></svg>點燈・聖誕・紅葉</a>
+      <a href="#food" data-sec="food"><svg class="ic"><use href="#i-bowl"/></svg>餐廳</a>
+      <a href="#todo" data-sec="todo"><svg class="ic"><use href="#i-check"/></svg>預約待辦</a>
+      <a href="#stay" data-sec="stay"><svg class="ic"><use href="#i-bed"/></svg>住宿・航班</a>
+      <a href="#tax" data-sec="tax"><svg class="ic"><use href="#i-receipt"/></svg>退稅新制</a>
+      <a href="#pack" data-sec="pack"><svg class="ic"><use href="#i-bag"/></svg>攜帶物品</a>
+      <a href="#expense" data-sec="expense"><svg class="ic"><use href="#i-yen"/></svg>消費表</a>
     </nav>
     <div class="foot">
       <div class="theme-switch" id="themeSwitch">
@@ -63,12 +67,12 @@
       <div class="grid4" style="margin-top:16px" id="ovStats"></div>
       <div class="grid2" style="margin-top:16px">
         <div class="panel">
-          <h3 style="font-size:16px;margin-bottom:10px">必看清單</h3>
+          <h3 style="margin-bottom:10px">必看清單</h3>
           <ul class="todo" id="ovMust"></ul>
         </div>
         <div class="panel flush">
-          <div style="padding:16px 20px 6px"><h3 style="font-size:16px">紅葉・銀杏現況</h3><p class="small muted" id="ovFolNote"></p></div>
-          <div class="tbl-wrap"><table class="dt" id="ovFoliage"></table></div>
+          <div style="padding:16px 20px 6px"><h3>紅葉・銀杏現況</h3><p class="small muted" id="ovFolNote"></p></div>
+          <div class="tbl-wrap"><table class="dt cards" id="ovFoliage"></table></div>
         </div>
       </div>
     </section>
@@ -100,7 +104,7 @@
     <section class="sec" id="sec-events">
       <div class="sec-head"><span class="sec-n">03</span><h2>點燈・聖誕・紅葉</h2></div>
       <p class="lede">時間都以 2026 年官方公告為準，點活動名稱可以開官網。</p>
-      <div class="panel flush"><div class="tbl-wrap"><table class="dt" id="evTable"></table></div></div>
+      <div class="panel flush"><div class="tbl-wrap"><table class="dt cards" id="evTable"></table></div></div>
     </section>
 
     <!-- 04 food -->
@@ -112,9 +116,9 @@
         <span style="flex:1"></span>
         <span class="sync" id="foodSync"><i class="dot"></i><span>本機模式</span></span>
       </div>
-      <div class="panel flush"><div class="tbl-wrap"><table class="dt" id="foodTable"></table></div></div>
+      <div class="panel flush"><div class="tbl-wrap"><table class="dt cards" id="foodTable"></table></div></div>
       <details class="panel" style="margin-top:14px" id="foodAddBox">
-        <summary style="cursor:pointer;font-weight:700;color:var(--accent-ink)">＋ 新增餐廳</summary>
+        <summary >＋ 新增餐廳</summary>
         <form class="form" id="foodForm" style="margin-top:12px">
           <label>店名<input name="name" required></label>
           <label>種類<input name="type" list="typeList" placeholder="拉麵"></label>
@@ -190,7 +194,7 @@
         </div>
       </div>
       <div class="panel" style="margin-top:16px" id="nexBox">
-        <h3 style="font-size:16px;margin-bottom:8px">N'EX 成田特快</h3>
+        <h3 style="margin-bottom:8px">N'EX 成田特快</h3>
         <div id="nexBody" class="small"></div>
       </div>
     </section>
@@ -217,18 +221,7 @@
     <section class="sec" id="sec-expense">
       <div class="sec-head"><span class="sec-n">09</span><h2>消費表</h2></div>
       <p class="lede">記帳用。新增一筆就會同步到 Google Sheet（還沒設定時只存在這台裝置）。</p>
-      <div class="grid4" id="expStats"></div>
-      <div class="grid2" style="margin-top:16px">
-        <div class="panel">
-          <h3 style="font-size:16px;margin-bottom:10px">每天小計</h3>
-          <div id="expDays"></div>
-        </div>
-        <div class="panel">
-          <h3 style="font-size:16px;margin-bottom:10px">分類小計</h3>
-          <div id="expCats"></div>
-        </div>
-      </div>
-      <div class="panel" style="margin-top:16px">
+      <div class="panel" style="margin-bottom:16px">
         <form class="form" id="expForm">
           <label>日期<select name="day" id="expDay"></select></label>
           <label>分類<select name="cat"><option>餐飲</option><option>交通</option><option>門票</option><option>購物</option><option>住宿</option><option>其他</option></select></label>
@@ -245,10 +238,21 @@
             <input id="fx" type="number" step="0.001" style="width:80px;border:1px solid var(--line);border-radius:6px;padding:2px 6px"> TWD</label>
         </div>
       </div>
-      <div class="panel flush" style="margin-top:14px"><div class="tbl-wrap"><table class="dt" id="expTable"></table></div></div>
+      <div class="grid4" id="expStats"></div>
+      <div class="grid2" style="margin-top:16px">
+        <div class="panel">
+          <h3 style="margin-bottom:10px">每天小計</h3>
+          <div id="expDays"></div>
+        </div>
+        <div class="panel">
+          <h3 style="margin-bottom:10px">分類小計</h3>
+          <div id="expCats"></div>
+        </div>
+      </div>
+      <div class="panel flush" style="margin-top:14px"><div class="tbl-wrap"><table class="dt cards" id="expTable"></table></div></div>
 
       <details class="panel" style="margin-top:16px" id="sheetBox">
-        <summary style="cursor:pointer;font-weight:700;color:var(--accent-ink)">⚙ Google Sheet 同步設定</summary>
+        <summary >⚙ Google Sheet 同步設定</summary>
         <div style="margin-top:12px" class="small">
           <p>貼上 Apps Script 部署後的網址（…/exec）與你自己設定的通行碼。這兩個值只存在這台裝置的瀏覽器裡；Cris 的手機也要設定一次。</p>
           <form class="form" id="sheetForm" style="margin-top:10px">
@@ -269,31 +273,31 @@
 
 <!-- mobile bottom tab bar + "more" sheet -->
 <nav class="tabbar" id="tabbar">
-  <a href="#board" data-sec="board"><span>🗓️</span>行程</a>
-  <a href="#map" data-sec="map"><span>🗺️</span>地圖</a>
-  <a href="#food" data-sec="food"><span>🍜</span>餐廳</a>
-  <a href="#expense" data-sec="expense"><span>💴</span>記帳</a>
-  <button id="moreBtn" type="button"><span>☰</span>更多</button>
+  <a href="#board" data-sec="board"><svg class="ic"><use href="#i-cal"/></svg>行程</a>
+  <a href="#map" data-sec="map"><svg class="ic"><use href="#i-map"/></svg>地圖</a>
+  <a href="#food" data-sec="food"><svg class="ic"><use href="#i-bowl"/></svg>餐廳</a>
+  <a href="#expense" data-sec="expense"><svg class="ic"><use href="#i-yen"/></svg>記帳</a>
+  <button id="moreBtn" type="button"><svg class="ic"><use href="#i-menu"/></svg>更多</button>
 </nav>
 <div class="sheet-bg" id="sheetBg"></div>
 <div class="sheet" id="sheet" aria-hidden="true">
   <div class="grip"></div>
-  <a href="#overview" data-sec="overview"><span>🏠</span>總覽</a>
-  <a href="#board" data-sec="board"><span>🗓️</span>行程看板</a>
-  <a href="#map" data-sec="map"><span>🗺️</span>地圖</a>
-  <a href="#events" data-sec="events"><span>🎄</span>點燈・聖誕・紅葉</a>
-  <a href="#food" data-sec="food"><span>🍜</span>餐廳</a>
-  <a href="#todo" data-sec="todo"><span>✅</span>預約待辦</a>
-  <a href="#stay" data-sec="stay"><span>🏨</span>住宿・航班</a>
-  <a href="#tax" data-sec="tax"><span>🧾</span>退稅新制</a>
-  <a href="#pack" data-sec="pack"><span>🧳</span>攜帶物品</a>
-  <a href="#expense" data-sec="expense"><span>💴</span>消費表</a>
+  <a href="#overview" data-sec="overview"><svg class="ic"><use href="#i-home"/></svg>總覽</a>
+  <a href="#board" data-sec="board"><svg class="ic"><use href="#i-cal"/></svg>行程看板</a>
+  <a href="#map" data-sec="map"><svg class="ic"><use href="#i-map"/></svg>地圖</a>
+  <a href="#events" data-sec="events"><svg class="ic"><use href="#i-spark"/></svg>點燈・聖誕・紅葉</a>
+  <a href="#food" data-sec="food"><svg class="ic"><use href="#i-bowl"/></svg>餐廳</a>
+  <a href="#todo" data-sec="todo"><svg class="ic"><use href="#i-check"/></svg>預約待辦</a>
+  <a href="#stay" data-sec="stay"><svg class="ic"><use href="#i-bed"/></svg>住宿・航班</a>
+  <a href="#tax" data-sec="tax"><svg class="ic"><use href="#i-receipt"/></svg>退稅新制</a>
+  <a href="#pack" data-sec="pack"><svg class="ic"><use href="#i-bag"/></svg>攜帶物品</a>
+  <a href="#expense" data-sec="expense"><svg class="ic"><use href="#i-yen"/></svg>消費表</a>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
-<script src="assets/data.js?v=202611242030"></script>
-<script src="assets/tax.js?v=202611242030"></script>
-<script src="assets/app.js?v=202611242030"></script>
+<script src="assets/data.js?v=202611251200"></script>
+<script src="assets/tax.js?v=202611251200"></script>
+<script src="assets/app.js?v=202611251200"></script>
 </body>
 </html>
