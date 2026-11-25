@@ -10,6 +10,12 @@
     del(k){ try{ localStorage.removeItem("tk26-"+k); }catch(e){} }
   };
   const CAT = { sight:"景點", light:"點燈・夜景", food:"餐飲", shop:"購物", move:"交通" };
+  /* 圖示：Phosphor Duotone（介面，CSS mask 上色）＋ Meteocons（天氣，彩色動畫） */
+  const PH = n => `<i class="pi" style="--u:url(https://cdn.jsdelivr.net/npm/@phosphor-icons/core@2.1.1/assets/duotone/${n}-duotone.svg)" aria-hidden="true"></i>`;
+  const MC = n => `<img class="mc" src="https://cdn.jsdelivr.net/npm/@bybas/weather-icons@2.0.0/production/fill/all/${n}.svg" alt="" aria-hidden="true">`;
+  const CATI = { sight:"camera", light:"sparkle", food:"fork-knife", shop:"shopping-bag", move:"train-simple" };
+  const SLOTI = { am:"sun", pm:"cloud-sun", night:"moon-stars" };
+  const whoIcon = w => /👫|Cris.*Charles|Charles.*Cris/.test(w) ? PH("users") : PH("user");
   const yen = n => "¥" + Math.round(Number(n)||0).toLocaleString("en-US");
 
   /* ---------- geo ---------- */
@@ -39,10 +45,22 @@
     document.documentElement.setAttribute("data-theme", t);
     try{ localStorage.setItem("tk26-theme", t); }catch(e){}
     $$("#themeSwitch button").forEach(b => b.classList.toggle("on", b.dataset.theme === t));
-    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", "#f7f4ee");
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", typeof isDark === "function" && isDark() ? "#17140f" : "#f7f4ee");
     if (window._map) refreshMapStyle();
   }
   $$("#themeSwitch button").forEach(b => b.addEventListener("click", () => setTheme(b.dataset.theme)));
+  const MODES = ["auto","light","dark"], MODE_LABEL = { auto:"跟隨系統", light:"淺色", dark:"深色" };
+  function isDark(){ const m = document.documentElement.getAttribute("data-mode"); return m === "dark" || (m === "auto" && matchMedia("(prefers-color-scheme: dark)").matches); }
+  function setMode(m){
+    if (!MODES.includes(m)) m = "auto";
+    document.documentElement.setAttribute("data-mode", m);
+    try{ localStorage.setItem("tk26-mode", m); }catch(e){}
+    $$("[data-mode-btn]").forEach(b => { b.dataset.modeBtn = m; b.title = "外觀：" + MODE_LABEL[m]; const l = $(".lbl", b); if (l) l.textContent = MODE_LABEL[m]; });
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", isDark() ? "#17140f" : "#f7f4ee");
+  }
+  $$("[data-mode-btn]").forEach(b => b.addEventListener("click", () => setMode(MODES[(MODES.indexOf(document.documentElement.getAttribute("data-mode")) + 1) % 3])));
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => setMode(document.documentElement.getAttribute("data-mode")));
+  setMode(document.documentElement.getAttribute("data-mode") || "auto");
   $("#mTheme").addEventListener("click", () => setTheme(document.documentElement.getAttribute("data-theme") === "maple" ? "indigo" : "maple"));
   setTheme(document.documentElement.getAttribute("data-theme"));
   $("#ver").textContent = "行程 " + T.version;
@@ -52,6 +70,7 @@
   function show(id){
     if (!SECS.includes(id)) id = "overview";
     $$(".sec").forEach(s => s.classList.toggle("on", s.id === "sec-"+id));
+    document.body.dataset.sec = id;
     $$("[data-sec]").forEach(a => a.classList.toggle("on", a.dataset.sec === id));
     const NAMES = { overview:"總覽", board:"行程看板", map:"地圖", events:"點燈・聖誕・紅葉", food:"餐廳", todo:"預約待辦", stay:"住宿・航班", tax:"退稅新制", pack:"攜帶物品", expense:"消費表" };
     $("#mSec").textContent = NAMES[id];
@@ -125,6 +144,8 @@
   const JA2ZH = [["晴れ","晴"],["くもり","多雲"],["時々","時而"],["一時","短暫"],["のち","後轉"],["所により","局部"],["を伴う","伴隨"],["昼過ぎ","下午"],["昼前","上午"],["夕方","傍晚"],["未明","凌晨"],["朝","早上"],["夜","夜間"],["から","起"],["激しく","大"],["降る",""],["で","，"]];
   const wxZh = (code, ja) => WXZH[+code] || (ja ? JA2ZH.reduce((t, [x, y]) => t.split(x).join(y), ja) : ({1:"晴",2:"多雲",3:"雨",4:"雪"})[String(code).charAt(0)] || "—");
   function wxKind(code, zh){
+    if (/雷/.test(zh)) return "thunder";
+    if (/霧/.test(zh) && !/雨/.test(zh)) return "fog";
     if (/雪/.test(zh)) return "snow";
     const c = String(code).charAt(0);
     if (c === "3") return "rain";
@@ -132,7 +153,7 @@
     if (c === "1") return /多雲/.test(zh) ? "partly" : "sun";
     return /晴/.test(zh) ? "partly" : "cloud";
   }
-  const WXICO = { sun:"☀️", partly:"⛅", cloud:"☁️", shower:"🌦️", rain:"🌧️", snow:"❄️" };
+  const WXMC = { sun:"clear-day", partly:"partly-cloudy-day", cloud:"overcast-day", shower:"partly-cloudy-day-rain", rain:"rain", snow:"snow", thunder:"thunderstorms-day-rain", fog:"fog-day" };
   function wxFor(day){
     const code = T.weather.byDay[day.id] || T.weather.default, d = WX[code];
     if (!d) return null;
@@ -164,23 +185,22 @@
   }
   function wxHTML(day){
     const w = wxFor(day);
-    if (!w) return `<div class="wxcard none">🌤️ 天氣載入中…</div>`;
+    if (!w) return `<div class="wxcard none">天氣載入中…</div>`;
     const url = `https://www.jma.go.jp/bosai/forecast/#area_type=offices&area_code=${w.code}`;
-    if (w.none) return `<div class="wxcard none">🌤️ 這天還沒有天氣預報（氣象廳約 7 天前開始發布）· <a href="${url}" target="_blank" rel="noopener">氣象廳 ↗</a></div>`;
+    if (w.none) return `<div class="wxcard none">${PH("cloud")}這天還沒有天氣預報（氣象廳約 7 天前開始發布）· <a href="${url}" target="_blank" rel="noopener">氣象廳 ↗</a></div>`;
     const zh = wxZh(w.wcode, w.text), kind = wxKind(w.wcode, zh);
     const pops = w.slots ? Object.values(w.slots) : w.pop != null ? [+w.pop] : [];
     const maxPop = pops.length ? Math.max(...pops) : null;
-    const umb = maxPop == null ? null : maxPop >= 50 ? ["t-rain","☔ 要帶傘"] : maxPop >= 30 ? ["t-maybe","🌂 帶折傘備用"] : ["t-dry","🌂 不用帶傘"];
+    const umb = maxPop == null ? null : maxPop >= 50 ? ["t-rain", MC("umbrella") + "要帶傘"] : maxPop >= 30 ? ["t-maybe", MC("umbrella") + "帶折傘備用"] : ["t-dry", MC("clear-day") + "不用帶傘"];
     const lo = w.min != null && w.min !== "" ? +w.min : null, hi = w.max != null && w.max !== "" ? +w.max : null;
-    const coat = lo == null ? null : lo <= 5 ? "🧥 很冷：穿厚外套、羽絨" : lo <= 10 ? "🧥 早晚冷：外套＋保暖層" : "👕 薄外套就好";
+    const coat = lo == null ? null : lo <= 5 ? MC("thermometer-colder") + "很冷：穿厚外套、羽絨" : lo <= 10 ? MC("thermometer-colder") + "早晚冷：外套＋保暖層" : MC("thermometer") + "薄外套就好";
     const rain = w.slots
       ? [["am","上午"],["pm","下午"],["night","晚上"]].map(([k, l]) => `<span class="slot"><small>${l}</small><b>${w.slots[k] != null ? w.slots[k] + "%" : "—"}</b><i style="--p:${w.slots[k] ?? 0}%"></i></span>`).join("")
       : `<span class="slot"><small>全天</small><b>${maxPop != null ? maxPop + "%" : "—"}</b><i style="--p:${maxPop ?? 0}%"></i></span>`;
     const relZh = { A:"高", B:"中", C:"低，可能會變" }[w.rel];
     const when = w.report ? w.report.slice(5,16).replace("T"," ").replace("-","/") : "";
-    const fx = kind === "rain" || kind === "shower" ? `<i class="drop"></i><i class="drop"></i><i class="drop"></i>` : kind === "snow" ? `<i class="flake">❄</i><i class="flake">❄</i>` : "";
     return `<div class="wxcard k-${kind}">
-      <div class="wx-ico" aria-hidden="true"><span class="ico">${WXICO[kind]}</span>${fx}</div>
+      <div class="wx-ico" aria-hidden="true">${MC(WXMC[kind])}</div>
       <div class="wx-main"><div class="wx-sum">${esc(zh)}</div>
         <div class="wx-temp">${hi != null ? `<span><small>最高</small><b>${hi}°</b></span>` : ""}${lo != null ? `<span><small>最低</small><b>${lo}°</b></span>` : ""}</div></div>
       <div class="wx-rain"><span class="lbl">降雨機率</span>${rain}</div>
@@ -200,7 +220,7 @@
       ["行程點", ORIG.filter(visible).length + " 個", false],
       ["點燈・夜景", lights + " 場", false],
       ["日落", "16:28", false]
-    ].map(([k,v,a]) => `<div class="stat"><div class="k">${k}</div><div class="v ${a?"accent":""}">${v}</div></div>`).join("");
+    ].map(([k,v,a]) => `<div class="cell${a?" lead":""}"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
     const must = [
       ["11/29","神宮外苑點燈最後一晚 16:30–19:30"],
       ["11/29","都廳投影：19:00 哥吉拉、19:30 寶可夢 TCG"],
@@ -239,7 +259,7 @@
     const planTag = pd ? `<span class="tag t-plan">${esc(pd.plans.find(p => p.key === i.plan).label)} 限定</span>` : "";
     const opts = T.days.map(d => `<option value="${d.id}" ${d.id===i.day?"selected":""}>D${d.id} ${d.date}（${d.dow}）</option>`).join("");
     return `<div class="card cat-${i.cat}${i.moved?" moved":""}" data-id="${i.id}" style="--dc:var(--d${i.day})">
-      <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${CAT[i.cat]}</span>${i.who?`<span class="tag t-who">${esc(i.who)}</span>`:""}${planTag}</div>
+      <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${PH(CATI[i.cat])}${CAT[i.cat]}</span>${i.who?`<span class="tag t-who">${whoIcon(i.who)}${esc(i.who)}</span>`:""}${planTag}</div>
       <h4>${title}</h4>
       ${i.tenki && FOL[i.tenki]?.status ? `<a class="fol tag ${folTag(FOL[i.tenki].status)}" href="https://tenki.jp/kouyou/${esc(i.tenki)}.html" target="_blank" rel="noopener">🍁 ${esc(FOL[i.tenki].status)}（${esc(FOL[i.tenki].asOf)}）</a>` : ""}
       ${i.ticket ? `<a class="tix" href="${esc(i.ticket)}" target="_blank" rel="noopener">🎟 要先買票 · 官網</a>` : ""}
@@ -253,7 +273,7 @@
       </div></div>`;
   }
   function renderBoard(){
-    $("#boardLegend").innerHTML = Object.entries(CAT).map(([k,v]) => `<span><i style="background:var(--c-${k})"></i>${v}</span>`).join("");
+    $("#boardLegend").innerHTML = Object.entries(CAT).map(([k,v]) => `<span class="tag t-${k}">${PH(CATI[k])}${v}</span>`).join("");
     $("#boardTabs").innerHTML = T.days.map(d => `<button role="tab" class="daytab ${d.id===boardDay?"on":""}" data-day="${d.id}" style="--dc:var(--d${d.id})" aria-selected="${d.id===boardDay}">
       <b>D${d.id}${d.id===tripDayToday()?' · 今天':''}</b><span>${d.date}<small>（${d.dow}）</small></span><em>${byDay(d.id).length}</em></button>`).join("");
     const tabs = $("#boardTabs"), on = $(".daytab.on", tabs);
@@ -261,14 +281,15 @@
     const d = T.days.find(x => x.id === boardDay), list = byDay(boardDay);
     $("#board").style.setProperty("--dc", `var(--d${d.id})`);
     const phone = isPhone(), seg = phone ? slotFor(d.id, list) : null;
-    $("#board").innerHTML = `<div class="day-title" style="--dc:var(--d${d.id})"><b>D${d.id}</b> ${d.date}（${d.dow}）<span>${esc(d.title)}</span><em class="nav-hint">← → 切換天數</em></div>
+    document.documentElement.style.setProperty("--cur-dc", `var(--d${d.id})`);
+    $("#board").innerHTML = `<div class="day-hero"><div class="day-title" style="--dc:var(--d${d.id})"><b>D${d.id}</b> ${d.date}（${d.dow}）<span>${esc(d.title)}</span><em class="nav-hint">← → 切換天數</em></div>
       ${wxHTML(d)}
-      <div class="day-meta"><span class="sun">🌅 日出 <b>${d.sun[0]}</b></span><span class="sun">🌇 日落 <b>${d.sun[1]}</b></span><span class="who">👤 ${esc(d.who)}</span></div>
-      ${d.plans ? `<div class="plan-tabs" role="tablist" aria-label="版本">${d.plans.map(p => `<button role="tab" class="plan-tab ${planOf(d.id)===p.key?"on":""}" data-plan="${p.key}" aria-selected="${planOf(d.id)===p.key}"><b>${esc(p.label)}</b><span>${esc(p.desc)}</span></button>`).join("")}<small class="muted">只顯示所選版本；標「限定」的是兩版不同的地方</small></div>` : ""}
-      ${phone ? `<div class="seg" role="tablist" aria-label="時段" style="--i:${SLOTS.findIndex(([k]) => k === seg)}"><i class="seg-ind" aria-hidden="true"></i>${SLOTS.map(([k, label]) => `<button role="tab" class="${seg===k?"on":""}" data-seg="${k}" aria-selected="${seg===k}">${label} <em>${list.filter(i => i.slot === k).length}</em></button>`).join("")}</div>` : ""}
+      <div class="day-meta"><span class="sun">${MC("sunrise")}日出 <b>${d.sun[0]}</b></span><span class="sun">${MC("sunset")}日落 <b>${d.sun[1]}</b></span><span class="who">${whoIcon(d.who)}${esc(d.who.replace(/\s*👫\s*/g, " 兩人 ").trim())}</span></div>
+      ${d.plans ? `<div class="plan-tabs" role="tablist" aria-label="版本">${d.plans.map(p => `<button role="tab" class="plan-tab ${planOf(d.id)===p.key?"on":""}" data-plan="${p.key}" aria-selected="${planOf(d.id)===p.key}"><b>${esc(p.label)}</b><span>${esc(p.desc)}</span></button>`).join("")}<small class="muted">只顯示所選版本；標「限定」的是兩版不同的地方</small></div>` : ""}</div>
+      ${phone ? `<div class="seg" role="tablist" aria-label="時段" style="--i:${SLOTS.findIndex(([k]) => k === seg)}"><i class="seg-ind" aria-hidden="true"></i>${SLOTS.map(([k, label]) => `<button role="tab" class="${seg===k?"on":""}" data-seg="${k}" aria-selected="${seg===k}">${PH(SLOTI[k])}${label.replace(/^\S+\s/, "")} <em>${list.filter(i => i.slot === k).length}</em></button>`).join("")}</div>` : ""}
       <div class="board3${phone?" one":""}">${SLOTS.map(([k, label, range]) => {
         const cards = list.filter(i => i.slot === k);
-        return `<div class="col${seg===k?" show":""}"><div class="col-head"><div class="d"><span>${label}</span><small>${range}</small><em>${cards.length}</em></div></div>
+        return `<div class="col${seg===k?" show":""}"><div class="col-head"><div class="d"><span>${PH(SLOTI[k])}${label.replace(/^\S+\s/, "")}</span><small>${range}</small><em>${cards.length}</em></div></div>
           <div class="col-body" data-slot="${k}">${cards.map(cardHTML).join("")}</div></div>`;
       }).join("")}</div>`;
     if (window.Sortable && !isPhone()) $$("#board .col-body").forEach(el => new Sortable(el, { group:"slots", animation:150, delay:150, delayOnTouchOnly:true, ghostClass:"sortable-ghost", onEnd: saveBoard }));
