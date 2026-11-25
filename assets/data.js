@@ -1,6 +1,6 @@
 /* 2026 Tokyo trip data — source of truth: ../2026_Tokyo_itinerary_v3.md (v3.7, 2026-11-24) */
 window.TRIP = {
-  version: "v4.1 · 2026-11-25",
+  version: "v4.2 · 2026-11-25",
   hotel: { name: "品川王子大飯店", lat: 35.6280, lng: 139.7365 },
 
   /* sun: 國立天文台 暦計算室（東京；12/3 為橫濱） who: 當天成員 */
@@ -8,11 +8,11 @@ window.TRIP = {
     { id: 1, date: "11/29", dow: "日", sun: ["06:30","16:28"], who: "Charles", title: "外苑清晨・寶可夢雕像・光之丘・外苑點燈・都廳投影" },
     { id: 2, date: "11/30", dow: "一", sun: ["06:31","16:28"], who: "Charles", title: "高尾山・八王子銀杏・井之頭・Alpen・しば田" },
     { id: 3, date: "12/01", dow: "二", sun: ["06:32","16:28"], who: "Charles ➔ 晚上 👫", title: "上野・東大・新宿御苑・六本木會合・光之森林" },
-    { id: 4, date: "12/02", dow: "三", sun: ["06:33","16:28"], who: "早上 👫 ➔ 各自 ➔ 六義園 👫", title: "靖國・東御苑・PokéPark KANTO・六義園" },
+    { id: 4, date: "12/02", dow: "三", sun: ["06:33","16:28"], who: "早上 👫 ➔ 各自 ➔ 六義園 👫", title: "靖國・東御苑 ➔ PokéPark／Cris：有明 MUJI・國立新美術館・新宿 ➔ 六義園" },
     { id: 5, date: "12/03", dow: "四", sun: ["06:33","16:29"], who: "👫", title: "橫濱：三溪園・波靈橋・寶可夢井蓋・紅磚聖誕" },
     { id: 6, date: "12/04", dow: "五", sun: ["06:34","16:28"], who: "👫", title: "銅鑼燒・三囲・魚政 ➔ 下午兩案",
       plans: [ { key: "A", label: "A'", desc: "芝公園・東京鐵塔・聖誕市集" }, { key: "B", label: "B", desc: "晴空塔・竹燈祭・みつヰ" } ] },
-    { id: 7, date: "12/05", dow: "六", sun: ["06:35","16:28"], who: "👫 ➔ 晚上各自", title: "九品佛・日比谷公園・國會議事堂・Bic・午餐（選配）・小石川・YOASOBI" },
+    { id: 7, date: "12/05", dow: "六", sun: ["06:35","16:28"], who: "👫 ➔ 晚上各自", title: "九品佛・日比谷公園・國會議事堂・Bic・小石川 ➔ YOASOBI／Cris：銀座 UNIQLO・藥妝" },
     { id: 8, date: "12/06", dow: "日", sun: ["06:36","16:28"], who: "👫", title: "N'EX ➔ 成田 ➔ 返台" }
   ],
 
@@ -57,8 +57,13 @@ window.TRIP = {
     { id: "d4-01", day: 4, time: "07:30", title: "靖國神社 參道銀杏", cat: "sight", lat: 35.6941, lng: 139.7436, note: "👫 一起。", transit: "品川 ➔ 九段下", tenki: "3/16/34671" },
     { id: "d4-02", day: 4, time: "08:20", title: "北之丸公園（田安門）➔ 北桔橋門", cat: "sight", lat: 35.6915, lng: 139.7510 },
     { id: "d4-03", day: 4, time: "09:00", title: "江戶城遺址・皇居東御苑", cat: "sight", lat: 35.6875, lng: 139.7547, note: "天守台、本丸。免費，週一、五休。09:35 Charles 出發去 PokéPark，Cris 自由行。" },
+    { id: "d4-c1", day: 4, time: "10:00", who: "Cris", title: "Cris：大手町 ➔ 有明", cat: "move", lat: 35.6385, lng: 139.7928, note: "約 40 分。" },
+    { id: "d4-c2", day: 4, time: "10:40", who: "Cris", title: "無印良品 東京有明（有明ガーデン 1–3F）", cat: "shop", lat: 35.6385, lng: 139.7928, note: "平日 10:00–20:00。百合海鷗號「有明テニスの森」步行 3 分。大件可問櫃台能否宅配回飯店（未確認），或只買輕的。官網 11 月起維護中，營業時間當天再確認。", link: "https://shop.muji.com/jp/wp-content/themes/ariake/pdf/leaflet_02.pdf" },
+    { id: "d4-c3", day: 4, time: "12:45", who: "Cris", title: "國立新美術館：建築＋羅浮宮美術館展", cat: "sight", lat: 35.6653, lng: 139.7264, note: "「ルーヴル美術館展 ルネサンス」9/9–12/13，週二休館（12/2 週三有開）10:00–18:00，閉館前 30 分停止入場。當日券 ¥2,400，12/2 不用日時指定（只有 12/7–12/13 要）。先在館內吃午餐。", transit: "有明 ➔ 乃木坂（6 號出口直通）／六本木", link: "https://www.nact.jp/exhibition_special/2026/louvre2026/" },
+    { id: "d4-c4", day: 4, time: "15:20", who: "Cris", title: "新宿高島屋", cat: "shop", lat: 35.6875, lng: 139.7024, note: "10:30–19:30；免稅櫃台 11F 11:00–19:30。JR 新宿站新南改札步行 2 分。時間不夠就先砍這站。", transit: "六本木 ➔ 新宿", link: "https://www.takashimaya.co.jp/shinjuku/businesshours/" },
+    { id: "d4-c5", day: 4, time: "16:30", who: "Cris", title: "Alpen TOKYO 新宿本店", cat: "shop", lat: 35.6935, lng: 139.7008, note: "平日 11:00–22:00。新宿東口步行 1 分；高島屋走過去約 8 分。17:30 離開。", link: "https://store.alpen-group.jp/Form/RealShop/ShopDetail.aspx?rsid=5200" },
     { id: "d4-04", day: 4, time: "11:00", who: "Charles", title: "🎮 PokéPark KANTO（精英票）", cat: "sight", lat: 35.6250, lng: 139.5180, note: "11:00–16:30。代購票 NT$4,600。", transit: "九段下 ➔ 京王よみうりランド（都營新宿線直通京王線）➔ 纜車" },
-    { id: "d4-05", day: 4, time: "18:00", title: "👫 六義園 夜間特別觀賞（會合）", cat: "light", lat: 35.7331, lng: 139.7468, note: "18:00–20:30，預售 ¥1,000 × 2（12/1 23:59 前買）。晚餐留白。", transit: "京王よみうりランド ➔ 駒込", link: "https://www.tokyo-park.or.jp/park/rikugien/news/2026/rikugiengardens.html", ticket: "https://www.tokyo-park.or.jp/park/rikugien/news/2026/rikugiengardens.html", tenki: "3/16/30125" },
+    { id: "d4-05", day: 4, time: "18:00", title: "👫 六義園 夜間特別觀賞（會合）", cat: "light", lat: 35.7331, lng: 139.7468, note: "18:00–20:30，預售 ¥1,000 × 2（12/1 23:59 前買）。晚餐留白。", transit: "Charles：京王よみうりランド ➔ 駒込／Cris：新宿 ➔ 駒込（山手線直達）", link: "https://www.tokyo-park.or.jp/park/rikugien/news/2026/rikugiengardens.html", ticket: "https://www.tokyo-park.or.jp/park/rikugien/news/2026/rikugiengardens.html", tenki: "3/16/30125" },
     // Day 5 — 橫濱
     { id: "d5-01", day: 5, time: "09:15", title: "名勝 三溪園", cat: "sight", lat: 35.4160, lng: 139.6620, note: "¥900。11/20 楓 2 成、銀杏見頃；楓預測 12/9 見頃。", transit: "品川 ➔ 橫濱 ➔ 三溪園（巴士）", tenki: "3/17/34666" },
     { id: "d5-02", day: 5, time: "11:00", title: "波靈橋（ポーリン橋）", cat: "sight", lat: 35.4425, lng: 139.6530, note: "人形之家 ↔ 山下公園的人行天橋。", transit: "三溪園 ➔ 山下公園" },
@@ -101,6 +106,8 @@ window.TRIP = {
     { id: "d7-05", day: 7, time: "13:30", title: "小石川後樂園", cat: "sight", lat: 35.7056, lng: 139.7495, note: "¥300，現場買票。", transit: "➔ 水道橋", link: "https://www.tokyo-park.or.jp/park/format/index030.html", tenki: "3/16/30119" },
     { id: "d7-06", day: 7, time: "15:30", title: "(選) 東京大神宮", cat: "sight", lat: 35.6996, lng: 139.7470 },
     { id: "d7-07", day: 7, time: "18:00", who: "Charles", title: "🎤 YOASOBI 東京巨蛋", cat: "light", lat: 35.7056, lng: 139.7519, note: "15:30 開場、18:00 開演，預計 20:30 左右結束（分區退場）。16:20 到巨蛋。Cris 晚上自由。", link: "https://www.yoasobi-music.jp/special/superplanet/" },
+    { id: "d7-c1", day: 7, time: "18:15", who: "Cris", title: "UNIQLO 銀座店（ギンザコマツ東館）", cat: "shop", lat: 35.6702, lng: 139.7634, note: "每天 11:00–21:00，建議 20:30 前結帳。銀座站 A2 出口步行 4 分。", transit: "➔ 銀座", link: "https://map.uniqlo.com/jp/ja/detail/10101397" },
+    { id: "d7-c2", day: 7, time: "19:45", who: "Cris", title: "マツモトキヨシ 銀座みゆきAve.店（藥妝）", cat: "shop", lat: 35.6718, lng: 139.7638, note: "每天 09:00–23:00（BINO GINZA）。備案：銀座8丁目店 10:00–22:00。之後 銀座 ➔ 有樂町 ➔ 品川。", link: "https://www.matsukiyococokara-online.com/map?kid=10001752" },
     // Day 8
     { id: "d8-01", day: 8, time: "07:18", title: "N'EX 5 號 品川 ➔ 成田 T2（08:32 到）", cat: "move", lat: 35.6285, lng: 139.7387, note: "06:55 退房；¥3,330 × 2，全車指定席。備案 07:39 N'EX 7 號。" },
     { id: "d8-02", day: 8, time: "08:32", title: "成田 T2：海關退稅 kiosk ➔ 領現金 ➔ 託運 ➔ 返台", cat: "move", lat: 35.7720, lng: 140.3929, note: "吸頂燈先做海關確認再託運。Charles IT201 11:25；Cris 另訂同時段班機。" }
@@ -117,6 +124,7 @@ window.TRIP = {
     { name: "橫濱寶可夢井蓋 5 處＋郵筒", when: "常設（郵筒至 2027/6 底）", hours: "24 小時", fee: "免費", day: "Day 5", src: "https://www.welcome.city.yokohama.jp/pokelids/" },
     { name: "竹燈祭 東京下町回遊 竹あかり", when: "11/07–1/31", hours: "17:00–22:00", fee: "免費", day: "Day 6（B）", src: "https://www.tobu.co.jp/odekake/special/takeakari/index.html" },
     { name: "東京聖誕市集・芝公園", when: "12/04–12/25", hours: "首日 16:00–22:00；其他 11:00–22:00（最後入場 21:00）", fee: "日時指定票：平日 ¥1,000／週末 ¥1,500（要先買）", day: "Day 6（A')", src: "https://tokyochristmas.net/" },
+    { name: "國立新美術館「ルーヴル美術館展 ルネサンス」", when: "09/09–12/13", hours: "10:00–18:00（週五六到 20:00），週二休", fee: "當日 ¥2,400（12/7 起要日時指定）", day: "Day 4（Cris）", src: "https://www.nact.jp/exhibition_special/2026/louvre2026/" },
     { name: "復仇者聯盟 HIBIYA Magic Time", when: "11/12–12/25", hours: "16:00–23:00，每 30 分一場燈光秀", fee: "免費", day: "Day 6", src: "https://www.hibiya.tokyo-midtown.com/xmas/" },
     { name: "丸之內 哈利波特聖誕樹", when: "11/12–12/25", hours: "燈光秀 17:00–21:00，每 15 分", fee: "免費", day: "Day 6", src: "https://www.marunouchi.com/lp/brightholiday2026/" },
     { name: "丸之內仲通燈飾", when: "11/12–2/14", hours: "12 月 16:00–24:00", fee: "免費", day: "Day 6", src: "https://www.marunouchi.com/pickup/event/11233/" },
@@ -163,7 +171,8 @@ window.TRIP = {
     { id: "t25", text: "N'EX 12/6 07:18 品川發 5 號 × 2（連號）", due: "出發前" },
     { id: "t26", text: "品川王子：12/1 起 2 人入住的價差（已寫信詢問）", due: "等回覆" },
     { id: "t28", text: "Cris 回程航班：確認航廈（是否也是成田 T2）", due: "出發前" },
-    { id: "t10", text: "註冊 J-TaxRefund／JPrefund；Alpen 結帳前先問用哪一家退稅業者", due: "購物前" },
+    { id: "t10", text: "註冊 J-TaxRefund／JPrefund（兩人各自）；結帳時說要「空港で現金」，業者不明就先問", due: "購物前" },
+    { id: "t31", text: "Cris：新宿高島屋退稅只能退信用卡、手續費 23%，建議不要在那裡辦退稅", due: "12/2" },
     { id: "t7", text: "Bic Camera 官網先選好吸頂燈型號", due: "12/5 前" },
     { id: "t8", text: "確認ほたて日和、みつヰ（B 案／12/5 選配）12 月公休；MATSUI 看 IG／X 公告", due: "11/28" }
   ],

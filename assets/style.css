@@ -17,6 +17,7 @@
   --ginkgo:#d9a21b; --ginkgo-ink:#7d5a00; --ginkgo-soft:#fbf1d6;
   /* weather */
   --rain:#3f78c8; --rain-soft:#e6eef9;
+  --cris:#d14d8b;
   /* type */
   --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
   --serif:"Noto Serif TC","Songti TC","PMingLiU",serif;
@@ -159,9 +160,9 @@ details.panel>summary{cursor:pointer;font-weight:700;color:var(--ink)}
 .day-title b{color:#fff;background:var(--dc);border-radius:var(--r-sm);padding:1px 8px;font-size:var(--fs-sm)}
 .day-title span{font-weight:400;color:var(--muted);font-size:14px}
 .day-title .nav-hint{margin-left:auto}
-.day-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;margin:0 0 14px;font-size:var(--fs-sm);color:var(--muted)}
+.day-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 22px;margin:0 0 14px;font-size:var(--fs-md);color:var(--muted)}
 .day-meta span{display:inline-flex;align-items:center;gap:4px}
-.day-meta b{color:var(--ink);font-weight:700}
+.day-meta b{color:var(--ink);font-weight:700;font-size:var(--fs-lg)}
 
 .plan-tabs{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 14px}
 .plan-tab,.seg button{display:flex;align-items:baseline;gap:8px;padding:7px 14px;border:1px solid var(--line);border-radius:var(--r);background:var(--panel);color:var(--text);cursor:pointer;font:inherit;text-align:left}
@@ -223,7 +224,7 @@ details.panel>summary{cursor:pointer;font-weight:700;color:var(--ink)}
 .wx-temp b{font-size:var(--fs-2xl);font-weight:700;color:var(--ink);line-height:1.1}
 .wx-temp span:last-child b{font-size:var(--fs-xl);color:var(--rain)}
 .wx-rain{grid-area:rain;display:flex;align-items:flex-end;gap:14px;justify-content:flex-end}
-.wx-rain .lbl{font-size:var(--fs-xs);color:var(--muted);align-self:center}
+.wx-rain .lbl{display:inline-flex;align-items:center;gap:4px;font-size:var(--fs-sm);font-weight:700;color:var(--rain);align-self:center}
 .wx-rain .slot{display:flex;flex-direction:column;gap:3px;min-width:64px}
 .wx-rain .slot small{font-size:var(--fs-xs);color:var(--muted)}
 .wx-rain .slot b{font-size:var(--fs-lg);font-weight:700;color:var(--ink);line-height:1.1}
@@ -416,7 +417,8 @@ details.panel>summary{cursor:pointer;font-weight:700;color:var(--ink)}
   .wxcard{grid-template-columns:auto 1fr;grid-template-areas:"ico main" "rain rain" "tips tips";padding:14px;gap:10px 14px}
   .wx-ico{width:64px;height:64px}.wx-ico .mc{width:72px;height:72px}
   .wx-rain{justify-content:flex-start;gap:10px}
-  .wx-rain .lbl{display:none}
+  .wx-rain{flex-wrap:wrap;row-gap:6px}
+  .wx-rain .lbl{flex-basis:100%}
   .wx-rain .slot{flex:1;min-width:0}
   .wx-src{margin-left:0;flex-basis:100%}
 
@@ -472,7 +474,7 @@ details.panel>summary{cursor:pointer;font-weight:700;color:var(--ink)}
 .tag.t-sight .pi{color:var(--c-sight)} .tag.t-light .pi{color:var(--c-light)} .tag.t-food .pi{color:var(--c-food)} .tag.t-shop .pi{color:var(--c-shop)} .tag.t-move .pi{color:var(--c-move)}
 .tag.t-who .pi{color:var(--ginkgo-ink)}
 .legend{gap:6px 14px}
-.day-meta .mc{width:26px;height:26px;margin:-4px 0}
+.day-meta .mc{width:34px;height:34px;margin:-7px -2px -7px -4px}
 .day-meta .who .pi{color:var(--ginkgo-ink);margin-right:2px}
 .col-head .d span{display:inline-flex;align-items:center;gap:6px}
 .col-head .d span .pi{color:var(--dc,var(--accent))}
@@ -578,6 +580,38 @@ body{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
 @media (prefers-color-scheme:dark){ :root[data-mode="auto"] .note.warn{color:var(--ink)} }
 :root[data-mode="dark"] .leaflet-tile-pane{filter:brightness(.78) contrast(1.05) saturate(.8)}
 @media (prefers-color-scheme:dark){ :root[data-mode="auto"] .leaflet-tile-pane{filter:brightness(.78) contrast(1.05) saturate(.8)} }
+
+
+/* v4.2 — 餐廳分類 underline tabs */
+.toolbar:has(.utabs){align-items:flex-end}
+.utabs{position:relative;display:flex;flex:1 1 100%;min-width:0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line);margin-bottom:4px}
+.utabs::-webkit-scrollbar{display:none}
+.utab{flex:0 0 auto;display:inline-flex;align-items:baseline;gap:5px;border:0;background:none;padding:9px 14px 10px;font-size:14px;color:var(--muted);cursor:pointer;white-space:nowrap;transition:color .25s}
+.utab em{font-style:normal;font-size:var(--fs-xs);color:var(--faint)}
+.utab:hover{color:var(--ink)}
+.utab.on{color:var(--ink);font-weight:700}
+.utab.on em{color:var(--accent)}
+.utab-ind{position:absolute;left:0;bottom:0;height:3px;border-radius:3px 3px 0 0;background:var(--accent);width:0;transition:transform .35s cubic-bezier(.3,.8,.25,1),width .35s cubic-bezier(.3,.8,.25,1)}
+#foodSync{margin-left:auto}
+@media (max-width:760px){
+  .utabs{margin:0 -14px 4px;padding:0 6px}
+  .utab{padding:9px 11px 10px}
+  .day-meta{font-size:14.5px;gap:6px 16px}
+}
+
+
+/* Cris 的單獨行程（地圖粉紅、卡片標籤） */
+.pin.cris{background:var(--cris);border-style:dashed}
+.cris-key{display:inline-block;width:22px;height:0;border-top:3px dashed var(--cris);vertical-align:middle;margin-right:6px}
+.map-list .row.cris .n{color:var(--cris)}
+.tag.t-who.cris{background:color-mix(in srgb,var(--cris) 14%,var(--panel));color:var(--cris)}
+.tag.t-who.cris .pi{color:var(--cris)}
+
+
+/* 退稅頁的圖卡 */
+.tax-fig{margin:0 0 18px;border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;background:var(--panel)}
+.tax-fig img{display:block;width:100%;height:auto}
+.tax-fig figcaption{padding:8px 14px;border-top:1px solid var(--line2)}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}

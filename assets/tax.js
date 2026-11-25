@@ -1,7 +1,12 @@
-/* Japan refund-type tax-free system (from 2026-11-01) + N'EX — researched 2026-11-21 */
+/* Japan refund-type tax-free system (from 2026-11-01) + N'EX — researched 2026-11-21, re-checked 2026-11-25 */
 window.TAX = {
   html: `
   <p class="lede">2026/11/01 起，日本退稅改成「先付含稅價，出境時海關確認後再退」。以下整理官方規定與成田 T2 的實際流程，並依你的條件（不用 Global Blue、不提供信用卡資料、拿到最多現金）排序。</p>
+
+  <figure class="tax-fig" id="taxFig">
+    <img src="assets/tax-infographic.png?v=1" alt="成田機場退稅領現金：必備條件與各退稅公司領現方式" loading="lazy" onerror="this.closest('figure').hidden=true">
+    <figcaption class="small muted">圖：成田 T2 退稅領現金總整理（11/25 查證後重畫）</figcaption>
+  </figure>
 
   <div class="grid3">
     <div class="stat"><div class="k">結帳時</div><div class="v" style="font-size:17px">付含 10% 稅的全額</div><div class="small muted">出示護照，拿退稅收據或 QR code</div></div>
@@ -42,11 +47,12 @@ window.TAX = {
   <h3 style="font-size:17px;margin:22px 0 10px">不用信用卡的退稅方式（拿到的現金由多到少）</h3>
   <ol class="rank">
     <li><b>J-TaxRefund 或 JPrefund ➔ 成田 T2 自助退稅機（Self Tax Refund，Glory）領日圓現金</b>
-      <div class="small" style="margin-top:4px">位置：本館 3F，<b>安檢前</b>，G 櫃台旁（過了 G9/G10），06:00–24:00。支援 J-TaxRefund、JPrefund、Planet、AddSmart、LINKTIVITY、InTaxFree。每張收據約 1 分鐘，最少 ¥100。</div>
-      <div class="small muted">試算 ¥20,000 吸頂燈：稅 ¥1,818，扣掉約 1.1% 的現金手續費（網友實測，未證實）≈ <b>拿回約 ¥1,600</b>。<b>不用 Global Blue，也不用給卡號。</b></div>
+      <div class="small" style="margin-top:4px">位置：本館 3F，<b>安檢前</b>，G 櫃台旁，06:00–24:00（成田官方）。支援 J-TaxRefund、JPrefund、Planet、AddSmart、LINKTIVITY、InTaxFree（第三方整理，官方沒列名單）。每張收據約 1 分鐘。</div>
+      <div class="small" style="margin-top:4px">⚠️ Glory 官方新聞稿寫的第一步是「<b>在店裡結帳時就選現金退款</b>」。結帳時記得說要「空港で現金」。</div>
+      <div class="small muted">試算 ¥20,000 吸頂燈：稅 ¥1,818，扣掉現金手續費（約 1.1%，網友實測，未證實）≈ <b>拿回約 ¥1,600</b>。<b>不用 Global Blue，也不用給卡號。</b></div>
     </li>
-    <li><b>同樣的業者 ➔ Cash Japan 櫃台領現金</b>
-      <div class="small muted" style="margin-top:4px">3F，櫃台 06:00–23:00。金額可能差不多或略少（有報導說手續費是退稅額的 10%，未證實）。⚠️ <b>Cash Japan 是 Global Blue 旗下</b>，你想完全避開的話就不要用。</div>
+    <li><b>Cash Japan 現金機（出境審查之後）</b>
+      <div class="small muted" style="margin-top:4px"><b>更正（11/25）</b>：成田官方寫 Cash Japan 在 T2 本館 3F 和衛星廳 3F 的<b>出國後區域</b>，24 小時；原本寫的「3F 06:00–23:00」只出現在第三方網站。可處理 Global Blue、J-TaxRefund、JPrefund（Smart Detax）等。手續費有報導說 10%（未證實）。⚠️ <b>Cash Japan 是 Global Blue 設立的</b>，想完全避開就用上一個方式。</div>
     </li>
     <li><b>Alipay／WeChat Pay</b>
       <div class="small muted" style="margin-top:4px">不用卡號，但要有能收款的 Alipay 或微信帳戶，大多數台灣人沒有。手續費依業者而定。</div>
@@ -63,19 +69,39 @@ window.TAX = {
     <div class="panel">
       <h3 style="font-size:16px;margin-bottom:8px">兩家「J」開頭的業者</h3>
       <dl class="kv">
-        <dt>JPrefund</dt><dd>Smart Technologies &amp; Resources（SmartDetax）。在 jprefund.com 登錄護照（會做人臉確認），用 QR code 或 20 碼交易編號加入每筆購物。<b>機場現金要在海關確認之前就選好</b>，每趟上限約 ¥100,000。</dd>
-        <dt>J-TaxRefund</dt><dd>J&amp;J Tax Free。只有網站 j-taxrefund.com，沒有 app。要登錄 email 和護照照片；退款方式可以在海關確認之後再選，180 天內要完成。</dd>
+        <dt>JPrefund</dt><dd>Smart Technologies &amp; Resources（SmartDetax）。在 jprefund.com 登錄，用收據 QR code 或 20 碼交易編號加入每筆購物，<b>出發前</b>選「Cash at Airport」（官方原文）。期限：購買日起 200 天。（人臉確認、每趟 ¥100,000 上限只有第三方說法，未證實）</dd>
+        <dt>J-TaxRefund</dt><dd>J&amp;J Tax Free。網站 j-taxrefund.com（官網只顯示登入頁，細節讀不到）。180 天內要用收據 QR 登記（唐吉訶德官方說明）；「海關確認後再選退款方式」只有第三方說法。Self Tax Refund 機和 Cash Japan 都能領現金。</dd>
       </dl>
-      <p class="small muted" style="margin-top:8px">⚠️ 這兩家的細節來自第三方整理，官網無法直接讀取。</p>
+      <p class="small muted" style="margin-top:8px">來源：<a href="https://jprefund.com/landing" target="_blank" rel="noopener">JPrefund</a>・<a href="https://www.donki.com/en/tax_free" target="_blank" rel="noopener">唐吉訶德（PPIH）</a>・<a href="https://tokyo-haneda.com/site_resource/whats_new/pdf/000017830.pdf" target="_blank" rel="noopener">Glory 新聞稿</a>・<a href="https://livejapan.com/en/article-a0006097/" target="_blank" rel="noopener">LiveJapan（第三方）</a></p>
     </div>
     <div class="panel">
-      <h3 style="font-size:16px;margin-bottom:8px">你要買的兩家店</h3>
+      <h3 style="font-size:16px;margin-bottom:8px">社群圖卡 vs 查證（11/25）</h3>
       <dl class="kv">
-        <dt>Bic Camera</dt><dd>媒體報導用 <b>J-TaxRefund</b>（未經 Bic 官方證實）。Bic 負擔退稅手續費（¥0，可能隨時結束）；但選機場現金時，櫃台手續費還是會扣（網友實測約 1.1%）。</dd>
-        <dt>Alpen TOKYO</dt><dd>查不到用哪一家。<b>結帳前問清楚</b>，或看收據上的 QR code。</dd>
+        <dt>Global Blue</dt><dd>Cash Japan 領現金 <span class="tag t-ok">一致</span>；「不用註冊、不用 QR」<span class="tag t-warn">未證實</span></dd>
+        <dt>J-TaxRefund</dt><dd>Self Tax Refund＋Cash Japan 都能領 <span class="tag t-ok">一致</span>；「不用註冊」<span class="tag t-stop">可能不對</span>：唐吉訶德要求 180 天內掃收據 QR 登記，Glory 要在店裡先選現金</dd>
+        <dt>JPrefund</dt><dd>要登記 QR 並選「機場領現金」<span class="tag t-ok">一致</span>（官方：出發前選）；另外 Self Tax Refund 機也支援（第三方）</dd>
+        <dt>PIE VAT</dt><dd>不能在機場領現金 <span class="tag t-warn">只有第三方</span></dd>
+        <dt>兩個條件</dt><dd>結帳出示護照＋check-in 前做海關確認 <span class="tag t-ok">一致</span></dd>
       </dl>
-      <div class="note" style="margin-top:10px">如果信用卡退款：Bic 的 ¥0 方案可以全額退 ¥1,818，只扣台灣信用卡的海外交易手續費。只是你不想提供卡號。</div>
     </div>
+  </div>
+
+
+  <div class="panel" style="margin-top:16px">
+    <h3 style="font-size:16px;margin-bottom:4px">這趟會去的店：退稅方式（11/25 查證）</h3>
+    <p class="small muted" style="margin-bottom:8px">【官】＝店家或業者官方；【三】＝媒體、部落格。業者不明的店，結帳前問：<b>「免税の返金は空港で現金で受け取れますか？どの返金会社ですか？」</b></p>
+    <div class="tbl-wrap"><table class="dt cards">
+      <tr><th>店</th><th>誰・哪天</th><th>退稅業者</th><th>機場現金</th><th>注意</th></tr>
+      <tr><td class="name">Bic Camera 有樂町</td><td data-l="誰・哪天">Charles・12/5</td><td data-l="業者">J-TaxRefund【三】</td><td data-l="機場現金"><span class="tag t-ok">可以</span></td><td data-l="注意">店家免收申請費；機場窗口手續費會從退款扣除【三】</td></tr>
+      <tr><td class="name">Alpen TOKYO 新宿</td><td data-l="誰・哪天">Charles 11/30・Cris 12/2</td><td data-l="業者">查不到</td><td data-l="機場現金"><span class="tag t-warn">未確認</span></td><td data-l="注意">結帳前用上面那句日文問</td></tr>
+      <tr><td class="name">新宿高島屋</td><td data-l="誰・哪天">Cris・12/2</td><td data-l="業者">官方未寫名（第三方說 Global Blue）</td><td data-l="機場現金"><span class="tag t-stop">不行</span></td><td data-l="注意"><b>購物當天要到 11F 免稅櫃台（11:00–19:30）出示本人信用卡</b>；只能退信用卡、支付寶、微信；手續費 <b>23%</b>【官】。<b>建議不要在這裡辦退稅</b></td></tr>
+      <tr><td class="name">無印良品 東京有明</td><td data-l="誰・哪天">Cris・12/2</td><td data-l="業者">查不到（官網 11/11 起維護中）</td><td data-l="機場現金"><span class="tag t-warn">未確認</span></td><td data-l="注意">結帳前問</td></tr>
+      <tr><td class="name">UNIQLO 銀座</td><td data-l="誰・哪天">Cris・12/5 晚上</td><td data-l="業者">J-TaxRefund【三】</td><td data-l="機場現金"><span class="tag t-warn">未確認</span></td><td data-l="注意">官方 FAQ 擋爬蟲讀不到；結帳前問</td></tr>
+      <tr><td class="name">マツモトキヨシ 銀座みゆきAve.</td><td data-l="誰・哪天">Cris・12/5 晚上</td><td data-l="業者">查不到</td><td data-l="機場現金"><span class="tag t-warn">未確認</span></td><td data-l="注意">結帳前問</td></tr>
+      <tr><td class="name">（備案）唐吉訶德 銀座本館</td><td data-l="誰・哪天">Cris・12/5</td><td data-l="業者">J-TaxRefund【三】</td><td data-l="機場現金"><span class="tag t-ok">可以</span></td><td data-l="注意">180 天內要用收據 QR 到 PPIH 網站登記，用別家網站登記會退不到【官】；24 小時營業</td></tr>
+      <tr><td class="name">（備案）ココカラファイン 銀座4丁目</td><td data-l="誰・哪天">Cris・12/5</td><td data-l="業者">第三方說 J-TaxRefund</td><td data-l="機場現金"><span class="tag t-warn">未確認</span></td><td data-l="注意">08:00–23:00（週末 09:00 起）【官】</td></tr>
+    </table></div>
+    <p class="small muted" style="margin-top:8px">來源：<a href="https://www.takashimaya.co.jp/store/special/tax_refund_procedure/index_cn.html" target="_blank" rel="noopener">高島屋退稅說明</a>・<a href="https://www.donki.com/en/tax_free" target="_blank" rel="noopener">唐吉訶德</a>・<a href="https://www.matsukiyococokara-online.com/map?kid=20002260" target="_blank" rel="noopener">ココカラファイン</a>・<a href="https://www.narita-airport.jp/ja/service/exchange/taxrefund/" target="_blank" rel="noopener">成田機場</a></p>
   </div>
 
   <div class="panel" style="margin-top:16px">

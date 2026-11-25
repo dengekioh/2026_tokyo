@@ -14,7 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="assets/style.css?v=202611251800">
+<link rel="stylesheet" href="assets/style.css?v=202611252130">
 <script>
   // theme: ?theme=indigo|maple overrides the saved choice
   (function(){var q=new URLSearchParams(location.search).get('theme');var s=null;try{s=localStorage.getItem('tk26-theme')}catch(e){}
@@ -115,8 +115,7 @@
       <div class="sec-head"><span class="sec-n">04</span><h2>餐廳</h2></div>
       <p class="lede">店名連到 Tabelog。設定好 Google Sheet 後，新增、刪除會同步到試算表；還沒設定時，資料只存在這台裝置。</p>
       <div class="toolbar">
-        <div id="foodTypes" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-        <span style="flex:1"></span>
+        <div class="utabs" id="foodTypes" role="tablist" aria-label="餐廳分類"></div>
         <span class="sync" id="foodSync"><i class="dot"></i><span>本機模式</span></span>
       </div>
       <div class="panel flush"><div class="tbl-wrap"><table class="dt cards" id="foodTable"></table></div></div>
@@ -299,8 +298,8 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
-<script src="assets/data.js?v=202611251800"></script>
-<script src="assets/tax.js?v=202611251800"></script>
-<script src="assets/app.js?v=202611251800"></script>
+<script src="assets/data.js?v=202611252130"></script>
+<script src="assets/tax.js?v=202611252130"></script>
+<script src="assets/app.js?v=202611252130"></script>
 </body>
 </html>

@@ -203,7 +203,7 @@
       <div class="wx-ico" aria-hidden="true">${MC(WXMC[kind])}</div>
       <div class="wx-main"><div class="wx-sum">${esc(zh)}</div>
         <div class="wx-temp">${hi != null ? `<span><small>最高</small><b>${hi}°</b></span>` : ""}${lo != null ? `<span><small>最低</small><b>${lo}°</b></span>` : ""}</div></div>
-      <div class="wx-rain"><span class="lbl">降雨機率</span>${rain}</div>
+      <div class="wx-rain"><span class="lbl">${PH("drop")}降雨機率</span>${rain}</div>
       <div class="wx-tips">${umb ? `<span class="tip ${umb[0]}">${umb[1]}</span>` : ""}${coat ? `<span class="tip">${coat}</span>` : ""}
       <span class="wx-src">${relZh ? `預報可信度：${relZh} · ` : ""}<a href="${url}" target="_blank" rel="noopener">氣象廳 ${when} 發表 ↗</a></span></div>
     </div>`;
@@ -259,7 +259,7 @@
     const planTag = pd ? `<span class="tag t-plan">${esc(pd.plans.find(p => p.key === i.plan).label)} 限定</span>` : "";
     const opts = T.days.map(d => `<option value="${d.id}" ${d.id===i.day?"selected":""}>D${d.id} ${d.date}（${d.dow}）</option>`).join("");
     return `<div class="card cat-${i.cat}${i.moved?" moved":""}" data-id="${i.id}" style="--dc:var(--d${i.day})">
-      <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${PH(CATI[i.cat])}${CAT[i.cat]}</span>${i.who?`<span class="tag t-who">${whoIcon(i.who)}${esc(i.who)}</span>`:""}${planTag}</div>
+      <div class="top"><span class="time">${esc(i.time)}</span><span class="tag t-${i.cat}">${PH(CATI[i.cat])}${CAT[i.cat]}</span>${i.who?`<span class="tag t-who${i.who==="Cris"?" cris":""}">${whoIcon(i.who)}${esc(i.who)}</span>`:""}${planTag}</div>
       <h4>${title}</h4>
       ${i.tenki && FOL[i.tenki]?.status ? `<a class="fol tag ${folTag(FOL[i.tenki].status)}" href="https://tenki.jp/kouyou/${esc(i.tenki)}.html" target="_blank" rel="noopener">🍁 ${esc(FOL[i.tenki].status)}（${esc(FOL[i.tenki].asOf)}）</a>` : ""}
       ${i.ticket ? `<a class="tix" href="${esc(i.ticket)}" target="_blank" rel="noopener">🎟 要先買票 · 官網</a>` : ""}
@@ -379,6 +379,7 @@
     drawMarkers(true);
   }
   function accent(){ return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim(); }
+  function crisColor(){ return getComputedStyle(document.documentElement).getPropertyValue("--cris").trim() || "#d14d8b"; }
   function dayColor(n){ return getComputedStyle(document.documentElement).getPropertyValue("--d"+n).trim() || accent(); }
   function refreshMapStyle(){ drawMarkers(); }
   function drawMarkers(fit){
@@ -400,16 +401,29 @@
         const label = `${d.id}-${n+1}`;
         const r = rel(i);
         const m = L.marker([i.lat, i.lng], {
-          icon: L.divIcon({ className:"", html:`<div class="pin ${on?"":"faded"}" style="${on?`--dc:var(--d${d.id})`:""}">${on?label:""}</div>`, iconSize:[24,24], iconAnchor:[12,12] }),
+          icon: L.divIcon({ className:"", html:`<div class="pin ${on?"":"faded"}${i.who==="Cris"?" cris":""}" style="${on?`--dc:var(--d${d.id})`:""}">${on?label:""}</div>`, iconSize:[24,24], iconAnchor:[12,12] }),
           zIndexOffset: on ? 500 : 0, opacity: on ? 1 : .55
         }).bindPopup(`<b>D${label} ${esc(i.time)}</b><br>${esc(i.title)}<br><span style="color:#6b6b7b">${esc(r.text)}</span>${i.link?`<br><a href="${esc(i.link)}" target="_blank" rel="noopener">${/tabelog/.test(i.link)?"Tabelog":"官網"}</a>`:""}${i.ticket?` · <a href="${esc(i.ticket)}" target="_blank" rel="noopener">🎟 買票</a>`:""}<br><a href="https://www.google.com/maps/dir/?api=1&destination=${i.lat},${i.lng}&travelmode=transit" target="_blank" rel="noopener">🧭 Google 導航</a>`).addTo(layer);
         markerById[i.id] = m;
-        if (on){ route.push([i.lat, i.lng]); pts.push([i.lat, i.lng]); list.push({ i, label, r }); }
+        if (on){ pts.push([i.lat, i.lng]); list.push({ i, label, r }); }
       });
-      if (mapDay === d.id && route.length > 1) L.polyline(route, { color:dayColor(d.id), weight:3, opacity:.75 }).addTo(layer);
+      if (mapDay === d.id){
+        // 主路線（不含 Cris 單獨行程）＋ Cris 自己的路線：從分開前的點，經過她的點，接到會合點
+        const main = items.filter(i => i.who !== "Cris");
+        if (main.length > 1) L.polyline(main.map(i => [i.lat, i.lng]), { color:dayColor(d.id), weight:3, opacity:.75 }).addTo(layer);
+        const ci = items.map((i, n) => i.who === "Cris" ? n : -1).filter(n => n >= 0);
+        if (ci.length){
+          const shared = n => !items[n].who;
+          let a = ci[0] - 1; while (a >= 0 && !shared(a)) a--;
+          let b = ci[ci.length - 1] + 1; while (b < items.length && !shared(b)) b++;
+          const seg = [...(a >= 0 ? [items[a]] : []), ...ci.map(n => items[n]), ...(b < items.length ? [items[b]] : [])];
+          L.polyline(seg.map(i => [i.lat, i.lng]), { color:crisColor(), weight:3.5, opacity:.9, dashArray:"7 7" }).addTo(layer);
+        }
+      }
     });
-    $("#mapList").innerHTML = `<div class="small muted" style="margin-bottom:6px">${mapDay ? "D"+mapDay+" 的行程點" : "全部行程點"}（點一下定位）</div>` +
-      list.map(x => `<div class="row" data-id="${x.i.id}" style="--dc:var(--d${x.i.day})"><span class="n">${x.label}</span><span><b>${esc(x.i.title)}</b><br><span class="muted">${esc(x.i.time)} · ${esc(x.r.text)}</span></span></div>`).join("");
+    const hasCris = list.some(x => x.i.who === "Cris");
+    $("#mapList").innerHTML = `<div class="small muted" style="margin-bottom:6px">${mapDay ? "D"+mapDay+" 的行程點" : "全部行程點"}（點一下定位）${hasCris && mapDay ? `<br><span class="cris-key"></span>粉紅虛線＝Cris 自己的路線` : ""}</div>` +
+      list.map(x => `<div class="row${x.i.who==="Cris"?" cris":""}" data-id="${x.i.id}" style="--dc:var(--d${x.i.day})"><span class="n">${x.label}</span><span><b>${esc(x.i.title)}</b><br><span class="muted">${esc(x.i.time)} · ${esc(x.r.text)}</span></span></div>`).join("");
     if (fit && pts.length) map.fitBounds(L.latLngBounds(pts.concat([[T.hotel.lat, T.hotel.lng]])), { padding:[30,30] });
   }
   function focusItem(id){
@@ -462,9 +476,27 @@
     renderFood();
   }
   function normFood(r){ ["tabelog","google","tabelogReviews","googleReviews"].forEach(k => { if (r[k] !== "" && r[k] != null) r[k] = Number(r[k]); }); return r; }
+  /* 餐廳分類：一條可左右滑的 tab，底線指示條滑到選中的那一格 */
+  let foodTabsKey = "";
+  function foodTabs(types){
+    const el = $("#foodTypes"), count = t => t === "全部" ? FOOD.length : FOOD.filter(f => f.type === t).length;
+    const key = types.map(t => t + count(t)).join("|");
+    if (key !== foodTabsKey){
+      foodTabsKey = key;
+      el.innerHTML = `<i class="utab-ind" aria-hidden="true"></i>` + types.map(t => `<button class="utab" role="tab" data-t="${esc(t)}">${esc(t)}<em>${count(t)}</em></button>`).join("");
+    }
+    $$(".utab", el).forEach(b => { const on = b.dataset.t === foodType; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+    foodInd(true);
+  }
+  function foodInd(scroll){
+    const el = $("#foodTypes"), on = $(".utab.on", el), ind = $(".utab-ind", el);
+    if (!on || !ind) return;
+    ind.style.width = on.offsetWidth + "px"; ind.style.transform = `translateX(${on.offsetLeft}px)`;
+    if (scroll && el.scrollWidth > el.clientWidth) el.scrollTo({ left: on.offsetLeft - (el.clientWidth - on.offsetWidth)/2, behavior:"smooth" });
+  }
   function renderFood(){
     const types = ["全部", ...Array.from(new Set(FOOD.map(f => f.type).filter(Boolean)))];
-    $("#foodTypes").innerHTML = types.map(t => `<button class="chip ${t===foodType?"on":""}" data-t="${esc(t)}">${esc(t)}</button>`).join("");
+    foodTabs(types);
     let rows = FOOD.filter(f => foodType === "全部" || f.type === foodType);
     const k = foodSort.k;
     rows.sort((a,b) => {
@@ -485,6 +517,7 @@
         <td class="act"><button class="btn danger sm" data-del="${esc(f.id)}">刪除</button></td></tr>`).join("");
   }
   $("#foodTypes").addEventListener("click", e => { const b = e.target.closest("[data-t]"); if (b){ foodType = b.dataset.t; renderFood(); } });
+  window.addEventListener("resize", () => foodInd(false));
   $("#foodTable").addEventListener("click", async e => {
     const h = e.target.closest("th[data-k]");
     if (h){ const k = h.dataset.k; foodSort = { k, dir: foodSort.k===k ? -foodSort.dir : (["tabelog","google"].includes(k)?-1:1) }; renderFood(); return; }
