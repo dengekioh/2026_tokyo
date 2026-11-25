@@ -4,8 +4,8 @@ window.TAX = {
   <p class="lede">2026/11/01 起，日本退稅改成「先付含稅價，出境時海關確認後再退」。以下整理官方規定與成田 T2 的實際流程，並依你的條件（不用 Global Blue、不提供信用卡資料、拿到最多現金）排序。</p>
 
   <figure class="tax-fig" id="taxFig">
-    <img src="assets/tax-infographic.png?v=1" alt="成田機場退稅領現金：必備條件與各退稅公司領現方式" loading="lazy" onerror="this.closest('figure').hidden=true">
-    <figcaption class="small muted">圖：成田 T2 退稅領現金總整理（11/25 查證後重畫）</figcaption>
+    <a href="assets/tax-infographic.jpg" target="_blank" rel="noopener"><img src="assets/tax-infographic.jpg?v=1" width="1122" height="1402" alt="成田 T2 退稅領現金：必備條件與各退稅公司領現方式" loading="lazy" onerror="this.closest('figure').hidden=true"></a>
+    <figcaption class="small muted">成田 T2 退稅領現金總整理（11/25 查證後重畫）・點圖放大</figcaption>
   </figure>
 
   <div class="grid3">
