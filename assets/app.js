@@ -316,6 +316,7 @@
       <div class="more">
         ${i.transit ? `<div class="tr">🚃 ${esc(i.transit)}</div>` : ""}
         ${i.note ? `<div>${esc(i.note)}</div>` : ""}
+        ${i.links ? `<div class="links">${i.links.filter(l => safeUrl(l.url)).map(l => `<a href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener">${esc(l.name)} ↗</a>`).join("")}</div>` : ""}
         <div class="ctrl"><label class="small muted">移到 <select data-move="${i.id}">${opts}</select></label>
         <button class="maplink" data-go="${i.id}">在地圖上看</button></div>
       </div></div>`;

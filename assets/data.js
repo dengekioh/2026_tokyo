@@ -30,7 +30,7 @@ window.TRIP = {
     { id: "d1-09", day: 1, time: "13:00", title: "光之丘公園 銀杏大道", q: "光が丘公園", cat: "sight", lat: 35.7630, lng: 139.6300, note: "11/22 紅葉見頃（tenki.jp），12/2 左右開始落葉。⚠️ 11/24 東京風雨大，葉子可能被吹落不少：11/28 晚上先看 X 搜尋「光が丘公園 イチョウ」再決定；落葉太多就改回品川 check-in 睡午覺。11/28–29 有光が丘公園フェスタ，人會比較多。", transit: "新宿御苑前 ➔ 中野坂上（丸之內線 4 站）➔ 光が丘（大江戶線）", tenki: "3/16/30117" },
     { id: "d1-10", day: 1, time: "15:30", title: "神宮外苑：夕陽 16:28 ➔ 16:30 點燈（最後一晚）", q: "明治神宮外苑 いちょう並木", cat: "light", lat: 35.6748, lng: 139.7177, note: "點燈 16:30–19:30，免費（東京都官方）。", transit: "光が丘 ➔ 國立競技場（大江戶線直達）", link: "https://www.metro.tokyo.lg.jp/information/press/2026/11/2026111301", tenki: "3/16/30688" },
     { id: "d1-11", day: 1, time: "19:00", title: "都廳投影：哥吉拉 19:00＋寶可夢 TCG 19:30", q: "東京都庁", cat: "light", lat: 35.6896, lng: 139.6917, note: "都民廣場，免費。", transit: "國立競技場 ➔ 都廳前（大江戶線）", link: "https://tokyoprojectionmappingproject.jp/" },
-    { id: "d1-12", day: 1, time: "19:45", title: "晚餐留白 ➔ 品川 Check-in", cat: "food", lat: 35.6896, lng: 139.6917 },
+    { id: "d1-12", day: 1, time: "19:45", title: "晚餐（選配）➔ 品川 Check-in", cat: "food", lat: 35.6896, lng: 139.6917, note: "順路選一間：① 親鶏中華そば 綾川（惠比壽東口 3 分，3.75）週日 11:00–21:30，麵賣完就關，21:00 前到；現金或交通卡。② 中華蕎麦 無冠（五反田 2–4 分，3.75）通常 17:00–22:00，當天早上 9 點前看 X 公布的時間；只收現金。兩間都不能預約。", transit: "都廳前 ➔ 新宿 ➔ 山手線 ➔ 惠比壽／五反田 ➔ 品川", links: [ { name: "綾川 Tabelog", url: "https://tabelog.com/tokyo/A1303/A130302/13253970/" }, { name: "無冠 Tabelog", url: "https://tabelog.com/tokyo/A1316/A131603/13279264/" } ] },
     // Day 2 — Charles
     { id: "d2-01", day: 2, time: "07:10", title: "京王線 新宿 ➔ 高尾山口", cat: "move", lat: 35.6896, lng: 139.6995, note: "品川 06:45 出發，08:00 到高尾山口。" },
     { id: "d2-02", day: 2, time: "08:15", title: "高尾山：纜車上山 ➔ 1 號路 ➔ 山頂", q: "高尾山 清滝駅", cat: "sight", lat: 35.6251, lng: 139.2437, note: "纜車首班 08:00；下山搭吊椅。早上最容易看到富士山。", tenki: "3/16/34655" },
@@ -215,6 +215,8 @@ window.TRIP = {
     { name: "すきやばし次郎 六本木ヒルズ店", type: "壽司", tabelog: 3.68, tabelogReviews: 217, google: 4.0, googleReviews: 504, area: "六本木", closed: "三", reserve: "已訂不到", day: "—", url: "https://tabelog.com/tokyo/A1307/A130701/13004426/" },
     { name: "かぶと", type: "鰻魚", tabelog: 4.43, tabelogReviews: 1427, google: "", googleReviews: "", area: "池袋", closed: "日・四・假日", reserve: "OMAKASE（撿取消）", day: "撿取消", url: "https://tabelog.com/tokyo/A1305/A130501/13016660/" },
     { name: "うなぎ 魚政", type: "鰻魚", tabelog: 4.30, tabelogReviews: 1288, google: "", googleReviews: "", area: "四ツ木", closed: "二・三", reserve: "TableCheck（內用 11:30–12:30／17:30–18:30）", day: "Day 6 午餐（已訂）", url: "https://tabelog.com/tokyo/A1324/A132403/13035339/" },
+    { name: "親鶏中華そば 綾川 本店", type: "拉麵", tabelog: 3.75, tabelogReviews: "", google: "", googleReviews: "", area: "惠比壽", closed: "無休（麵賣完就關）", reserve: "不可預約", day: "Day 1 晚餐選配", url: "https://tabelog.com/tokyo/A1303/A130302/13253970/" },
+    { name: "中華蕎麦 無冠", type: "拉麵", tabelog: 3.75, tabelogReviews: "", google: "", googleReviews: "", area: "五反田", closed: "看 X（每天 9 點前公布）", reserve: "不可預約，只收現金", day: "Day 1 晚餐選配", url: "https://tabelog.com/tokyo/A1316/A131603/13279264/" },
     { name: "アロマ珈琲 八重洲店", type: "早餐・咖啡", tabelog: 3.63, tabelogReviews: 1044, google: "", googleReviews: "", area: "八重洲", closed: "1/1", reserve: "不可預約，只收現金", day: "Day 1", url: "https://tabelog.com/tokyo/A1302/A130201/13045029/" }
   ]
 };

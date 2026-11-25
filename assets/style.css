@@ -686,6 +686,8 @@ input,select,textarea{max-width:100%}
 @media (max-width:960px){ .grid2,.grid3,.grid4,.map-wrap{grid-template-columns:minmax(0,1fr)} }
 body{overflow-x:clip}
 
+.card .more .links{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-weight:700}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
   .falling{display:none}
