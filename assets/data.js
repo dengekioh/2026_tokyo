@@ -169,9 +169,8 @@ window.TRIP = {
     { id: "t23", text: "光之森林 12/1 19:00：Cris 也要買同時段", due: "盡快" },
     { id: "t24", text: "六義園夜楓 12/2：預售 ¥1,000 × 2", due: "12/1 23:59" },
     { id: "t25", text: "N'EX 12/6 07:18 品川發 5 號 × 2（連號）", due: "出發前" },
-    { id: "t26", text: "品川王子：12/1 起 2 人入住的價差（已寫信詢問）", due: "等回覆" },
     { id: "t28", text: "Cris 回程航班：確認航廈（是否也是成田 T2）", due: "出發前" },
-    { id: "t10", text: "註冊 J-TaxRefund／JPrefund（兩人各自）；結帳時說要「空港で現金」，業者不明就先問", due: "購物前" },
+    { id: "t10", text: "退稅：結帳時問清楚是哪家業者、能不能「空港で現金」；收據 QR 回飯店就登記（J-TaxRefund／JPrefund／唐吉訶德用 PPIH 自己的網站）。Alpen 用 JPrefund 的話，出發前要在網站選「Cash at Airport」", due: "購物當天" },
     { id: "t31", text: "Cris：新宿高島屋退稅只能退信用卡、手續費 23%，建議不要在那裡辦退稅", due: "12/2" },
     { id: "t7", text: "Bic Camera 官網先選好吸頂燈型號", due: "12/5 前" },
     { id: "t8", text: "確認ほたて日和、みつヰ（B 案／12/5 選配）12 月公休；MATSUI 看 IG／X 公告", due: "11/28" }
