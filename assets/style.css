@@ -679,6 +679,13 @@ body{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
   .taxi-ja{font-size:28px}
 }
 
+/* iOS Safari 會用字體的平均字寬算輸入框的預設寬度（中文字體很寬），不鎖住就會把卡片撐出畫面 */
+input,select,textarea{max-width:100%}
+.pack-add input,.form input,.form select{width:100%;min-width:0}
+.pack-col,.grid2>*,.grid3>*,.grid4>*{min-width:0}
+@media (max-width:960px){ .grid2,.grid3,.grid4,.map-wrap{grid-template-columns:minmax(0,1fr)} }
+body{overflow-x:clip}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
   .falling{display:none}
