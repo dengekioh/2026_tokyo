@@ -688,6 +688,9 @@ body{overflow-x:clip}
 
 .card .more .links{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;font-weight:700}
 
+/* 表單裡的按鈕：字太長時換行，不要撐出格子蓋到旁邊的按鈕 */
+.form .btn{white-space:normal;min-width:0;line-height:1.35;overflow-wrap:anywhere}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
   .falling{display:none}
