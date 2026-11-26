@@ -19,7 +19,7 @@ window.TRIP = {
   /* cat: sight 景點 | light 點燈夜景 | food 餐飲 | shop 購物 | move 交通 ; who: 只有部分人參加時才標 */
   items: [
     // Day 1 — Charles
-    { id: "d1-01", day: 1, time: "00:50", title: "羽田 T3 ➔ NODOKA 休息淋浴 ➔ 首班車到品川", cat: "move", lat: 35.5494, lng: 139.7798, note: "PP／JCB 白金免費 3 小時。05:09 東京單軌電車首班（區間快速）➔ 05:25 濱松町，轉 05:33 京濱東北線 ➔ 05:40 品川 ➔ 05:50 飯店 Main Tower 1F 寄放行李。⚠️ 官網沒寫入住前幾點能寄，出發前打電話確認。深夜巴士沒有到品川的班次，不用考慮。" },
+    { id: "d1-01", day: 1, time: "00:50", title: "羽田 T3 ➔ NODOKA 休息淋浴 ➔ 首班車到品川", cat: "move", lat: 35.5494, lng: 139.7798, note: "PP／JCB 白金免費 3 小時。05:09 東京單軌電車首班（區間快速，浜松町行）：T3 的 2F 到達大廳就有單軌電車改札，2 番線，坐 6 節車廂的中間 ➔ 05:25 濱松町，轉 05:33 京濱東北線（大船行，4 番線）➔ 05:40 品川 ➔ 05:50 飯店 Main Tower 1F 寄放行李。⚠️ 官網沒寫入住前幾點能寄，出發前打電話確認。深夜巴士沒有到品川的班次，不用考慮。", links: [ { name: "乘換案內：T3 ➔ 品川 05:00 出發", url: "https://transit.yahoo.co.jp/search/result?from=%E7%BE%BD%E7%94%B0%E7%A9%BA%E6%B8%AF%E7%AC%AC3%E3%82%BF%E3%83%BC%E3%83%9F%E3%83%8A%E3%83%AB&to=%E5%93%81%E5%B7%9D&y=2026&m=11&d=29&hh=05&m1=0&m2=0&type=1&ticket=ic" }, { name: "乘換案內：品川 ➔ 外苑前 05:55", url: "https://transit.yahoo.co.jp/search/result?from=%E5%93%81%E5%B7%9D&to=%E5%A4%96%E8%8B%91%E5%89%8D&y=2026&m=11&d=29&hh=05&m1=5&m2=5&type=1&ticket=ic" } ] },
     { id: "d1-02", day: 1, time: "06:22", title: "明治神宮外苑銀杏大道・清晨", q: "明治神宮外苑 いちょう並木", cat: "sight", lat: 35.6748, lng: 139.7177, note: "日出 06:30。從青山通側入口進去。11/20 見頃 7–8 成，12/2 起落葉。想 06:00 前看到天亮前的藍色天空，就從飯店搭計程車（約 ¥2,500–3,000，估計）。07:30 離開。", transit: "品川 05:55 ➔ 山手線 ➔ 新橋 ➔ 銀座線 ➔ 外苑前 06:22", tenki: "3/16/30688" },
     { id: "d1-04", day: 1, time: "07:50", title: "（可不吃）早餐：アロマ珈琲 八重洲店", q: "アロマ珈琲 八重洲店", cat: "food", lat: 35.6800, lng: 139.7690, note: "週日 07:30 開，早餐套餐 ¥700，只收現金。", transit: "外苑前 ➔ 京橋（銀座線）", link: "https://tabelog.com/tokyo/A1302/A130201/13045029/" },
     { id: "d1-05", day: 1, time: "08:45", title: "東京車站丸之內站舍＋行幸通銀杏", q: "東京駅 丸の内駅舎", cat: "sight", lat: 35.6812, lng: 139.7649, note: "早上站舍正面逆光，從行幸通斜拍。" },
@@ -44,12 +44,13 @@ window.TRIP = {
     { id: "d2-07", day: 2, time: "18:10", title: "中華そば しば田", q: "中華そば しば田", cat: "food", lat: 35.6360, lng: 139.5785, note: "不能預約，晚上 17:30–20:30，週一有開。", transit: "新宿 ➔ 狛江（小田急）", link: "https://tabelog.com/tokyo/A1326/A132603/13300645/" },
     { id: "d2-09", day: 2, time: "21:00", alert: true, title: "魚政（12/4）今天是免費取消最後一天", cat: "food", lat: 35.6280, lng: 139.7365, note: "11/30 23:59（日本時間）前取消免費；12/1 起取消收 50%，12/2 起收 100%。改日期、改人數也算取消。不去就自己上 TableCheck 取消。", link: "https://www.tablecheck.com/ja/shops/unagi-uomasa/reserve" },
     // Day 3 — Charles；Cris 下午到，晚上會合
-    { id: "d3-02", day: 3, time: "09:10", title: "上野恩賜公園", q: "上野恩賜公園", cat: "sight", lat: 35.7148, lng: 139.7730, transit: "品川 ➔ 上野（山手線／京濱東北線）", tenki: "3/16/32201" },
+    { id: "d3-01", day: 3, time: "08:40", title: "ほたて日和 現場記帳", q: "ほたて日和 秋葉原", cat: "food", lat: 35.69856, lng: 139.77717, note: "平日午餐約 09:00 開放記帳，選 12:00–12:30。", transit: "品川 ➔ 秋葉原" },
+    { id: "d3-02", day: 3, time: "09:10", title: "上野恩賜公園", q: "上野恩賜公園", cat: "sight", lat: 35.7148, lng: 139.7730, tenki: "3/16/32201" },
     { id: "d3-03", day: 3, time: "10:15", title: "根津神社", q: "根津神社", cat: "sight", lat: 35.7203, lng: 139.7606 },
     { id: "d3-04", day: 3, time: "10:50", title: "東京大學本鄉 銀杏大道", q: "東京大学 本郷キャンパス", cat: "sight", lat: 35.7134, lng: 139.7622, note: "彌生門 ➔ 安田講堂 ➔ 三四郎池。" },
-    { id: "d3-05", day: 3, time: "12:15", title: "🍜 らぁ麺や 嶋（要預約）", q: "らぁ麺や 嶋", cat: "food", lat: 35.6866, lng: 139.685, note: "Tabelog 4.08，完全預約制，6 席。⚠️ 11/30 08:00 JST 才開放 12/1 的預約，很快會滿，鬧鐘設 07:58。入店時段 11:45／12:15／12:45。預約費 ¥390 不退；確定後取消收 ¥2,000；遲到算取消；湯頭用蝦；不要擦香水；只收現金。訂不到就回原案：ほたて日和（秋葉原，早上約 09:00 現場記帳）。", transit: "本郷三丁目 ➔ 大江戶線 ➔ 西新宿五丁目 A2 出口走 5 分（約 25–30 分）", links: [ { name: "TableCheck 預約", url: "https://www.tablecheck.com/ja/shops/ramenya-shima/reserve" }, { name: "嶋 Tabelog", url: "https://tabelog.com/tokyo/A1304/A130401/13247487/" }, { name: "備案 ほたて日和", url: "https://tabelog.com/tokyo/A1310/A131001/13280086/" } ] },
+    { id: "d3-05", day: 3, time: "12:15", title: "ほたて日和", q: "ほたて日和 秋葉原", cat: "food", lat: 35.69856, lng: 139.77717, note: "備案：らぁ麺や 嶋（西新宿五丁目，Tabelog 4.08，完全預約，6 席）。11/30 08:00 JST 才開放 12/1 預約；時段 11:45／12:15／12:45；預約費 ¥390 不退，確定後取消收 ¥2,000，遲到算取消，湯頭用蝦，只收現金。改去嶋的話：東大 ➔ 本郷三丁目 ➔ 大江戶線 ➔ 西新宿五丁目（約 25–30 分），吃完大江戶線到國立競技場走去新宿御苑。", link: "https://tabelog.com/tokyo/A1310/A131001/13280086/", links: [ { name: "備案 嶋 TableCheck", url: "https://www.tablecheck.com/ja/shops/ramenya-shima/reserve" }, { name: "備案 嶋 Tabelog", url: "https://tabelog.com/tokyo/A1304/A130401/13247487/" } ] },
     { id: "d3-c1", day: 3, time: "13:25", who: "Cris", title: "Cris 抵達成田 T2（JX314）➔ 品川 Check-in", cat: "move", lat: 35.7720, lng: 140.3929, note: "入境約 14:15，成田 T2 ➔ 品川約 16:00。延誤就直接到六本木或光之森林會合。" },
-    { id: "d3-06", day: 3, time: "13:30", title: "新宿御苑", q: "新宿御苑 千駄ヶ谷門", cat: "sight", lat: 35.6852, lng: 139.7100, note: "最後入園 16:00，¥500。", transit: "西新宿五丁目 ➔ 大江戶線 ➔ 國立競技場 ➔ 千駄ヶ谷門（走約 5 分）" },
+    { id: "d3-06", day: 3, time: "13:40", title: "新宿御苑", q: "新宿御苑 千駄ヶ谷門", cat: "sight", lat: 35.6852, lng: 139.7100, note: "最後入園 16:00，¥500。", transit: "秋葉原 ➔ 千駄ヶ谷" },
     { id: "d3-07", day: 3, time: "15:15", title: "明治神宮北門巨木銀杏", cat: "sight", lat: 35.6795, lng: 139.6990, note: "12 月 16:00 關門。" },
     { id: "d3-08", day: 3, time: "16:20", title: "入鹿 TOKYO 六本木", q: "入鹿TOKYO 六本木", cat: "food", lat: 35.66477, lng: 139.73168, note: "排隊制，全面無現金。", link: "https://tabelog.com/tokyo/A1307/A130701/13264260/" },
     { id: "d3-09", day: 3, time: "17:30", title: "👫 六本木之丘會合 ➔ 櫸坂燈飾＋東京鐵塔", q: "六本木ヒルズ", cat: "light", lat: 35.6595, lng: 139.7300, note: "「SNOW & BLUE」17:00–22:00；六本木之丘聖誕市集。", link: "https://www.christmas.hills-site.com/" },
@@ -166,7 +167,7 @@ window.TRIP = {
   weather: { default: "130000", byDay: { 5: "140000" } },
 
   todos: [
-    { id: "t33", text: "らぁ麺や 嶋：TableCheck 訂 12/1 12:15（1 位），11/30 08:00 JST 開放；訂不到就去ほたて日和", due: "11/30 08:00" },
+    { id: "t33", text: "（備案）らぁ麺や 嶋：想改吃的話，11/30 08:00 JST 上 TableCheck 訂 12/1 12:15（1 位）", due: "11/30 08:00" },
     { id: "t34", text: "打給品川王子確認：11/29 05:50 入住前能不能寄放行李", due: "出發前" },
     { id: "t29", text: "魚政 12/4 12:00（已訂）：不去的話 11/30 23:59 JST 前上 TableCheck 取消（12/1 起收 50%）", due: "11/30 23:59" },
     { id: "t32", text: "恵比寿 ふじまさ 12/2 20:30（2 位，已訂）：不去的話 11/28 前取消（11/29 起收全額）", due: "11/28" },
@@ -193,7 +194,7 @@ window.TRIP = {
   restaurants: [
     { name: "宍道湖しじみ中華蕎麦 琥珀 東京本店", type: "拉麵", tabelog: 3.92, tabelogReviews: 2112, google: 4.3, googleReviews: 1013, area: "雜色", closed: "日・假日", reserve: "TableCheck 完全預約", day: "不排", url: "https://tabelog.com/tokyo/A1315/A131503/13234195/" },
     { name: "入鹿 TOKYO 六本木", type: "拉麵", tabelog: 3.91, tabelogReviews: 2999, google: 4.0, googleReviews: 1762, area: "六本木", closed: "一", reserve: "排隊", day: "Day 3", url: "https://tabelog.com/tokyo/A1307/A130701/13264260/" },
-    { name: "Tokyo Style Noodle ほたて日和", type: "拉麵", tabelog: 3.88, tabelogReviews: 1477, google: 4.2, googleReviews: 566, area: "秋葉原", closed: "三", reserve: "現場記帳", day: "Day 3 備案", url: "https://tabelog.com/tokyo/A1310/A131001/13280086/" },
+    { name: "Tokyo Style Noodle ほたて日和", type: "拉麵", tabelog: 3.88, tabelogReviews: 1477, google: 4.2, googleReviews: 566, area: "秋葉原", closed: "三", reserve: "現場記帳", day: "Day 3", url: "https://tabelog.com/tokyo/A1310/A131001/13280086/" },
     { name: "中華そば しば田", type: "拉麵", tabelog: 4.01, tabelogReviews: 1787, google: "", googleReviews: "", area: "狛江", closed: "四・日", reserve: "排隊", day: "Day 2", url: "https://tabelog.com/tokyo/A1326/A132603/13300645/" },
     { name: "らーめん MAIKAGURA", type: "拉麵", tabelog: 3.86, tabelogReviews: 2144, google: 4.2, googleReviews: 967, area: "千歲船橋", closed: "一", reserve: "排隊／TableCheck 11:00 枠", day: "備案", url: "https://tabelog.com/tokyo/A1318/A131813/13218425/" },
     { name: "RAMEN MATSUI", type: "拉麵", tabelog: 3.83, tabelogReviews: 1563, google: "", googleReviews: "", area: "新宿御苑前", closed: "三・四", reserve: "TableCheck 完全預約（3 天前 12:00）", day: "Day 1 午餐 13:00（已訂）", url: "https://tabelog.com/tokyo/A1304/A130402/13285098/" },
@@ -216,7 +217,7 @@ window.TRIP = {
     { name: "とんかつ伊とう 渋谷フクラス店", type: "炸豬排", tabelog: 3.42, tabelogReviews: 140, google: 4.6, googleReviews: 168, area: "澀谷", closed: "無", reserve: "Tabelog／電話", day: "備案", url: "https://tabelog.com/tokyo/A1303/A130301/13295361/" },
     { name: "鮨 さわ田", type: "壽司", tabelog: 4.53, tabelogReviews: 622, google: 4.7, googleReviews: 195, area: "銀座", closed: "一（四・日不定）", reserve: "OMAKASE only", day: "撿取消", url: "https://tabelog.com/tokyo/A1301/A130101/13001043/" },
     { name: "恵比寿 鮨 ふじまさ", type: "壽司", tabelog: 3.77, tabelogReviews: 460, google: "", googleReviews: "", area: "恵比寿", closed: "一・不定休", reserve: "完全預約（TableCheck／Tabelog）；3 天前起取消收全額", day: "Day 4 晚餐（已訂）", url: "https://tabelog.com/tokyo/A1303/A130302/13251446/" },
-    { name: "らぁ麺や 嶋", type: "拉麵", tabelog: 4.08, tabelogReviews: "", google: "", googleReviews: "", area: "西新宿五丁目", closed: "六・日・假日", reserve: "TableCheck 完全預約（前一天 08:00 開放）", day: "Day 3 午餐（要預約）", url: "https://tabelog.com/tokyo/A1304/A130401/13247487/" },
+    { name: "らぁ麺や 嶋", type: "拉麵", tabelog: 4.08, tabelogReviews: "", google: "", googleReviews: "", area: "西新宿五丁目", closed: "六・日・假日", reserve: "TableCheck 完全預約（前一天 08:00 開放）", day: "Day 3 備案（要預約）", url: "https://tabelog.com/tokyo/A1304/A130401/13247487/" },
     { name: "丸祇羅（マルマサラ）", type: "咖哩", tabelog: 3.80, tabelogReviews: "", google: "", googleReviews: "", area: "関内", closed: "無休（2 年前資料）", reserve: "可預約；只收現金", day: "Day 5 午餐選配", url: "https://tabelog.com/kanagawa/A1401/A140104/14079157/" },
     { name: "鮓 ふじなが", type: "壽司", tabelog: 4.33, tabelogReviews: 319, google: "", googleReviews: "", area: "麻布十番", closed: "日・假日", reserve: "Tabelog／電話（18:00、20:30 兩輪）", day: "考慮中", url: "https://tabelog.com/tokyo/A1307/A130702/13265370/" },
     { name: "佐たけ", type: "壽司", tabelog: 3.93, tabelogReviews: 552, google: "", googleReviews: "", area: "築地市場", closed: "日・一", reserve: "Tabelog 線上", day: "已取消", url: "https://tabelog.com/tokyo/A1301/A130103/13258466/" },
