@@ -81,6 +81,9 @@
     document.body.dataset.sec = id;
     $$("[data-sec]").forEach(a => { const on = a.dataset.sec === id; a.classList.toggle("on", on); if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     $("#mSec").textContent = ($(`#nav [data-sec="${id}"]`)?.textContent || "").trim();
+    // 底部分頁列的玻璃滑塊：不在分頁列上的頁面（總覽、退稅…）放在「更多」
+    const tabs = $$("#tabbar a, #tabbar button"), ti = tabs.findIndex(a => a.dataset.sec === id);
+    $("#tabbar").style.setProperty("--t", ti >= 0 ? ti : tabs.length - 1);
     sheet(false);
     if (id === "map") initMap();
     window.scrollTo(0, 0);

@@ -26,6 +26,9 @@
   --r-sm:6px; --r:10px; --r-lg:14px; --pill:999px;
   --sheet-shadow:0 8px 24px rgba(40,30,20,.08);
   --ease:cubic-bezier(.2,.7,.2,1);
+  --spring:cubic-bezier(.34,1.5,.64,1);
+  /* 液態玻璃 */
+  --glass-top:rgba(255,255,255,.66); --glass-bot:rgba(255,255,255,.40); --glass-edge:rgba(255,255,255,.78); --glass-shade:rgba(60,40,20,.10); --glass-drop:rgba(60,40,20,.18);
 }
 :root[data-theme="maple"]{ --accent:#b5432a; --accent-ink:#8f3220; --accent-soft:#f6e7e1; }
 :root[data-theme="indigo"]{ --accent:#3a4bb8; --accent-ink:#29378f; --accent-soft:#e8eaf7; }
@@ -554,7 +557,7 @@ body{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
 /* dark mode — 夜晚看點燈用 */
 :root[data-mode="dark"]{
   --bg:#17140f; --panel:#211d17; --surface:#1c1915; --tint:#2b261f; --tint2:#25211b;
-  --ink:#f3ede4; --text:#ddd5c9; --muted:#a69d91; --faint:#958c80; --line:#38312a; --line2:#2d2822;
+  --ink:#f3ede4; --text:#ddd5c9; --muted:#a69d91; --faint:#958c80; --line:#38312a; --line2:#2d2822; --glass-top:rgba(62,54,44,.62); --glass-bot:rgba(32,28,22,.46); --glass-edge:rgba(255,255,255,.20); --glass-shade:rgba(0,0,0,.35); --glass-drop:rgba(0,0,0,.5);
   --ok:#6fc29b; --ok-soft:#1f3329; --warn:#e0ad55; --warn-soft:#3a2d17; --stop:#ef7d86; --stop-soft:#3d2125;
   --c-sight:#7fb3a6; --c-light:#e3b04d; --c-food:#d08aa1; --c-shop:#9aa0dc; --c-move:#a69d91;
   --ginkgo:#e6b53a; --ginkgo-ink:#f1cd6c; --ginkgo-soft:#3a3016;
@@ -566,7 +569,7 @@ body{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/20
 @media (prefers-color-scheme:dark){
   :root[data-mode="auto"]{
     --bg:#17140f; --panel:#211d17; --surface:#1c1915; --tint:#2b261f; --tint2:#25211b;
-    --ink:#f3ede4; --text:#ddd5c9; --muted:#a69d91; --faint:#958c80; --line:#38312a; --line2:#2d2822;
+    --ink:#f3ede4; --text:#ddd5c9; --muted:#a69d91; --faint:#958c80; --line:#38312a; --line2:#2d2822; --glass-top:rgba(62,54,44,.62); --glass-bot:rgba(32,28,22,.46); --glass-edge:rgba(255,255,255,.20); --glass-shade:rgba(0,0,0,.35); --glass-drop:rgba(0,0,0,.5);
     --ok:#6fc29b; --ok-soft:#1f3329; --warn:#e0ad55; --warn-soft:#3a2d17; --stop:#ef7d86; --stop-soft:#3d2125;
     --c-sight:#7fb3a6; --c-light:#e3b04d; --c-food:#d08aa1; --c-shop:#9aa0dc; --c-move:#a69d91;
     --ginkgo:#e6b53a; --ginkgo-ink:#f1cd6c; --ginkgo-soft:#3a3016;
@@ -690,6 +693,58 @@ body{overflow-x:clip}
 
 /* 表單裡的按鈕：字太長時換行，不要撐出格子蓋到旁邊的按鈕 */
 .form .btn{white-space:normal;min-width:0;line-height:1.35;overflow-wrap:anywhere}
+
+/* ===== v4.4 液態玻璃（B 案）：浮在內容上的元件做成玻璃；卡片、表格維持不透明 ===== */
+.daytab,.plan-tab,.seg button,.tabbar a,.tabbar button,.mmode,.mtheme,.sheet a{transition:transform .35s var(--spring),background .2s,border-color .2s,color .2s}
+.daytab:active,.plan-tab:active,.seg button:active,.tabbar a:active,.tabbar button:active,.mmode:active,.mtheme:active,.sheet a:active{transform:scale(.93)}
+/* Day 分頁、版本分頁：選中的那格像一塊有厚度的玻璃 */
+.daytab.on,.plan-tab.on{background:linear-gradient(180deg,color-mix(in srgb,var(--dc,var(--accent)) 76%,#fff 24%),var(--dc,var(--accent)));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -2px 0 rgba(0,0,0,.12),0 6px 16px -6px color-mix(in srgb,var(--dc,var(--accent)) 70%,transparent)}
+/* 地圖：放大縮小按鈕、店家小卡 */
+.leaflet-bar,.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:linear-gradient(180deg,var(--glass-top),var(--glass-bot))!important;color:var(--ink);
+  -webkit-backdrop-filter:blur(16px) saturate(190%);backdrop-filter:blur(16px) saturate(190%)}
+.leaflet-bar{border:1px solid var(--glass-edge)!important;border-radius:14px!important;overflow:hidden;box-shadow:inset 0 1px 0 var(--glass-edge),0 8px 22px -8px var(--glass-drop)!important}
+.leaflet-bar a{background:transparent!important;color:var(--ink)!important;border-bottom-color:var(--glass-edge)!important;width:40px!important;height:40px!important;line-height:40px!important}
+.leaflet-popup-content-wrapper{border:1px solid var(--glass-edge);border-radius:16px;box-shadow:inset 0 1px 0 var(--glass-edge),0 10px 26px -8px var(--glass-drop)}
+.leaflet-popup-content-wrapper a{color:var(--accent-ink)}
+.leaflet-container a.leaflet-popup-close-button{color:var(--muted)}
+
+@media (max-width:760px){
+  /* 狀態列那一條：浮動的頂部列上面不要透出內容 */
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:1150;background:var(--bg)}
+  /* 頂部列：浮起來的玻璃膠囊 */
+  .mtop{height:56px;margin:calc(6px + env(safe-area-inset-top,0px)) 10px 0;top:calc(6px + env(safe-area-inset-top,0px));padding:0 8px 0 14px;
+    border-radius:22px;border:1px solid var(--glass-edge);background:linear-gradient(180deg,var(--glass-top),var(--glass-bot));
+    -webkit-backdrop-filter:blur(20px) saturate(190%);backdrop-filter:blur(20px) saturate(190%);
+    box-shadow:inset 0 1px 0 var(--glass-edge),inset 0 -1px 0 var(--glass-shade),0 10px 28px -10px var(--glass-drop)}
+  body[data-sec="board"] .mtop{box-shadow:inset 0 1px 0 var(--glass-edge),inset 0 -2px 0 var(--cur-dc,transparent),0 10px 28px -10px var(--glass-drop)}
+  .mmode,.mtheme{background:transparent;border-color:var(--glass-edge)}
+  .daytabs{top:calc(62px + env(safe-area-inset-top,0px));padding-top:12px}
+  /* 底部分頁列：浮起來的膠囊，選中的分頁有一塊小玻璃滑過去 */
+  .tabbar{left:max(12px,env(safe-area-inset-left,0px));right:max(12px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));
+    padding:6px;border-radius:30px;border:1px solid var(--glass-edge);background:linear-gradient(180deg,var(--glass-top),var(--glass-bot));
+    -webkit-backdrop-filter:blur(20px) saturate(190%);backdrop-filter:blur(20px) saturate(190%);
+    box-shadow:inset 0 1px 0 var(--glass-edge),inset 0 -1px 0 var(--glass-shade),0 12px 30px -10px var(--glass-drop)}
+  .tabbar a,.tabbar button{position:relative;z-index:1;min-height:48px;justify-content:center;padding:4px 0}
+  .tab-ind{position:absolute;top:6px;bottom:6px;left:6px;width:calc((100% - 12px)/5);border-radius:24px;pointer-events:none;
+    background:color-mix(in srgb,var(--accent) 15%,transparent);box-shadow:inset 0 1px 0 var(--glass-edge);
+    transform:translateX(calc(var(--t,0)*100%));transition:transform .5s var(--spring)}
+  .tabbar #moreBtn[aria-expanded="true"]{color:var(--accent)}
+  main{padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+  /* 「更多」選單：浮起來的玻璃卡 */
+  .sheet{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));
+    padding:10px 12px 14px;border-radius:28px;border:1px solid var(--glass-edge);background:linear-gradient(180deg,var(--glass-top),var(--glass-bot));
+    -webkit-backdrop-filter:blur(24px) saturate(190%);backdrop-filter:blur(24px) saturate(190%);
+    box-shadow:inset 0 1px 0 var(--glass-edge),0 18px 40px -12px var(--glass-drop);transform:translateY(calc(100% + 24px));transition:transform .45s var(--spring)}
+  .sheet.on{transform:none}
+  .sheet a{background:color-mix(in srgb,var(--surface) 55%,transparent);border-color:var(--glass-edge)}
+  .sheet-bg{background:rgba(31,27,22,.16)}
+  /* 上午／下午／晚上：滑塊是玻璃 */
+  .seg{background:color-mix(in srgb,var(--tint) 75%,transparent)}
+  .seg-ind{background:linear-gradient(180deg,var(--glass-top),var(--glass-bot));border:1px solid var(--glass-edge);
+    -webkit-backdrop-filter:blur(10px) saturate(180%);backdrop-filter:blur(10px) saturate(180%);
+    box-shadow:inset 0 1px 0 var(--glass-edge),0 4px 14px -4px var(--glass-drop);transition:transform .45s var(--spring)}
+}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
