@@ -121,6 +121,9 @@ function doPost(e){
     if (b.action === "merge"){
       // 依 key（預設 name）合併：已存在的只更新 fields 指定的欄位，不存在的就新增
       const key = b.key || "name", fields = b.fields || [];
+      // 欄位有新增時（例如 hours／close／gmap）：補上標題列，新欄位設成純文字，免得「22:00」被轉成時間
+      sh.getRange(1, 1, 1, head.length).setValues([head]).setFontWeight("bold");
+      head.forEach((h, i) => { if (!NON_TEXT.includes(h)) sh.getRange(2, i + 1, Math.max(sh.getMaxRows() - 1, 1), 1).setNumberFormat("@"); });
       const kc = head.indexOf(key);
       if (kc < 0) throw new Error("bad key");
       const n = Math.max(sh.getLastRow() - 1, 0);

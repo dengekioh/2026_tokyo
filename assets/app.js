@@ -608,12 +608,18 @@
 
   /* ---------- restaurants ---------- */
   let FOOD = [], foodType = "全部", foodSort = Object.assign({ k:"tabelog", dir:-1 }, store.get("foodsort", {}));
-  if (!["tabelog","google","close","name","area","day","type"].includes(foodSort.k)) foodSort = { k:"tabelog", dir:-1 };
+  if (!["tabelog","google","close","name","area","day","type"].includes(foodSort.k) || ![1,-1].includes(foodSort.dir)) foodSort = { k:"tabelog", dir:-1 };
   async function loadFood(){
     if (Sheet.on()){
       FOOD = (await loadShared("restaurants", "#foodSync", () => store.get("food", null) || T.restaurants.map(r => ({ id: uid(), ...r })))).map(normFood);
     } else {
-      FOOD = store.get("food", null) || T.restaurants.map(r => ({ id: uid(), ...r }));
+      const saved = store.get("food", null);
+      if (saved){
+        // 本機存過的清單：補上這一版網站新加的店（依店名），並補新欄位
+        const have = new Set(saved.map(r => r.name));
+        T.restaurants.forEach(r => { if (!have.has(r.name)) saved.push({ id: uid(), ...r }); });
+        FOOD = saved.map(normFood);
+      } else FOOD = T.restaurants.map(r => ({ id: uid(), ...r }));
       setSync($("#foodSync"), "", "本機模式");
     }
     renderFood();
@@ -659,14 +665,14 @@
       if (typeof x === "number" && typeof y === "number") return (x - y) * foodSort.dir || (Number(b.tabelog)||0) - (Number(a.tabelog)||0);
       return String(x).localeCompare(String(y), "zh-Hant") * foodSort.dir;
     });
-    $$("#foodSortBar [data-sort]").forEach(b => { const on = b.dataset.sort === k; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+    $$("#foodSortBar [data-sort]").forEach(b => { const on = b.dataset.sort === k && foodSort.dir === -1; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
     const th = (key, label) => `<th class="sortable" data-k="${key}">${label}${foodSort.k===key?(foodSort.dir<0?" ↓":" ↑"):""}</th>`;
     const gmap = f => safeUrl(f.gmap) ? `<a class="gmap" href="${esc(safeUrl(f.gmap))}" target="_blank" rel="noopener">地圖 ↗</a>` : "";
     $("#foodTable").innerHTML = `<tr>${th("name","店名")}${th("type","種類")}${th("tabelog","Tabelog")}${th("google","Google")}${th("close","營業時間")}${th("area","地區")}<th>公休</th><th>預約</th>${th("day","排在")}<th></th></tr>` +
       rows.map(f => `<tr>
         <td class="name">${safeUrl(f.url) ? `<a href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener">${esc(f.name)}</a>` : `<b>${esc(f.name)}</b>`}</td>
         <td class="extra" data-l="種類"><span class="tag t-food">${esc(f.type)}</span></td>
-        <td class="num" data-l="Tabelog"><span class="score ${Number(f.tabelog)>=3.8?"hi":""}">${f.tabelog!==""&&f.tabelog!=null?Number(f.tabelog).toFixed(2):"—"}</span><br><span class="muted small">${f.tabelogReviews?Number(f.tabelogReviews).toLocaleString()+" 則":""}</span></td>
+        <td class="num" data-l="Tabelog"><span class="score ${Number(f.tabelog)>=3.8?"hi":""}">${f.tabelog!==""&&f.tabelog!=null&&!isNaN(f.tabelog)?Number(f.tabelog).toFixed(2):"—"}</span><br><span class="muted small">${f.tabelogReviews?Number(f.tabelogReviews).toLocaleString()+" 則":""}</span></td>
         <td class="num" data-l="Google">${f.google!==""&&f.google!=null&&!isNaN(f.google)?Number(f.google).toFixed(1):"—"} ${gmap(f)}<br><span class="muted small">${f.googleReviews?Number(f.googleReviews).toLocaleString()+" 則":""}</span></td>
         <td class="hours" data-l="營業時間">${f.hours ? esc(f.hours) : `<span class="muted">—</span>`}</td>
         <td data-l="地區">${esc(f.area)}</td><td class="extra" data-l="公休">${esc(f.closed)}</td><td class="extra" data-l="預約">${esc(f.reserve)}</td>
