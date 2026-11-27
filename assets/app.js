@@ -276,7 +276,7 @@
     };
     $("#ovFoliage").innerHTML = `<tr><th>地點</th><th>你去</th><th>手動查詢</th><th>tenki.jp 即時</th><th></th></tr>` +
       T.foliage.map(f => `<tr><td class="name">${esc(f.spot)}</td><td class="mono" data-l="你去">${f.visit}</td><td data-l="手動查詢">${esc(f.status)}</td><td data-l="tenki.jp">${live(f)}</td><td data-l="判斷"><span class="tag ${V[f.verdict][0]}">${V[f.verdict][1]}</span></td></tr>`).join("");
-    $("#ovFolNote").innerHTML = `手動查詢：11/21–24。即時：tenki.jp，Apps Script 每 6 小時更新${folFetched ? `（最後抓取 ${esc(folFetched)}）` : ""}。其他：` +
+    $("#ovFolNote").innerHTML = `手動查詢：11/26–27（【官】公園協會等官方、【三】tenki.jp／Weathernews）。即時：tenki.jp，Apps Script 每 6 小時更新${folFetched ? `（最後抓取 ${esc(folFetched)}）` : ""}。其他：` +
       T.foliageLinks.map(l => `<a href="${esc(safeUrl(l.url))}" target="_blank" rel="noopener">${esc(l.name)}</a>`).join("・");
   }
 
