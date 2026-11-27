@@ -103,6 +103,12 @@
   const ORIG = T.items.map(i => ({...i}));
   const SLOTS = [["am","☀️ 上午","～11:59"],["pm","🌤️ 下午","12:00–16:59"],["night","🌙 晚上","17:00～"]];
   function slotOf(time){ const h = parseInt(String(time).slice(0,2), 10); return h < 12 ? "am" : h < 17 ? "pm" : "night"; }
+  /* 一次性：清掉手機上存的 12/2（Day 4）舊排序，讓大家直接看到新的預設排法 */
+  (() => { const FIX = "2026-11-27-d4";
+    if (store.get("boardfix", "") === FIX) return;
+    const sv = store.get("board36", null);
+    if (sv){ Object.keys(sv).forEach(k => { if (/^d4-/.test(k) || sv[k]?.day === 4) delete sv[k]; }); store.set("board36", sv); }
+    store.set("boardfix", FIX); })();
   function loadItems(){
     const saved = store.get("board36", null); // {id:{day,order}}
     const items = ORIG.map((i, idx) => ({...i, order: idx}));
