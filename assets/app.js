@@ -74,7 +74,7 @@
   $("#ver").textContent = "行程 " + T.version;
 
   /* ---------- router ---------- */
-  const SECS = ["overview","board","map","events","food","todo","stay","info","tax","pack","expense"];
+  const SECS = ["overview","board","map","events","food","todo","stay","info","oyama","tax","pack","expense"];
   function show(id){
     if (!SECS.includes(id)) id = "overview";
     $$(".sec").forEach(s => s.classList.toggle("on", s.id === "sec-"+id));
@@ -256,7 +256,7 @@
       
       ["12/01","Cris 13:25 抵達成田，17:30 六本木會合 ➔ 光之森林 19:00"],
       ["12/02","PokéPark KANTO 11:00 ➔ 18:00 六義園會合 ➔ 20:30 恵比寿 ふじまさ（已訂）"],
-      ["12/03","橫濱 5 個寶可夢井蓋＋郵筒 ➔ 紅磚看日落、聖誕市集＋寶可夢燈飾"],
+      ["12/03","A 橫濱：5 個寶可夢井蓋＋郵筒 ➔ 紅磚聖誕市集＋寶可夢燈飾／B 大山：纜車＋阿夫利神社登頂（前一天買 A 券）"],
       ["12/04","魚政 12:00（已訂）➔ 下午 A' 芝公園・東京鐵塔・聖誕市集／B 晴空塔・竹燈祭・みつヰ"],
       ["12/05","18:00 YOASOBI 東京巨蛋"]
     ];
