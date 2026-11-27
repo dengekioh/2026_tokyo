@@ -5,7 +5,7 @@
  * Apps Script（記帳、行李同步）與所有 POST：完全不經過這裡
  * 改版時把 V 跟 index.html 的 ?v= 一起改
  */
-const V = "tk26-202611271500";
+const V = "tk26-202611271600";
 const RT = "tk26-cdn", TILES = "tk26-tiles", MAX_TILES = 400;
 const CORE = ["./", "index.html", "assets/style.css", "assets/app.js", "assets/data.js", "assets/tax.js", "assets/tax-infographic.jpg", "assets/icon-180.png", "manifest.json"];
 const CDN = /^(cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net|fonts\.googleapis\.com|fonts\.gstatic\.com)$/;

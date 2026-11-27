@@ -106,7 +106,7 @@
   function loadItems(){
     const saved = store.get("board36", null); // {id:{day,order}}
     const items = ORIG.map((i, idx) => ({...i, order: idx}));
-    items.forEach(i => i.slot = slotOf(i.time));
+    items.forEach(i => i.slot = i.slot || slotOf(i.time)); // 資料可指定預設時段（例如 Cris 12/2 的排法）
     if (saved) items.forEach(i => { if (saved[i.id]) { i.day = saved[i.id].day; i.order = saved[i.id].order; if (saved[i.id].slot) i.slot = saved[i.id].slot; i.moved = saved[i.id].day !== ORIG.find(o=>o.id===i.id).day; } });
     return items;
   }
