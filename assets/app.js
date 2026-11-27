@@ -607,7 +607,8 @@
   }
 
   /* ---------- restaurants ---------- */
-  let FOOD = [], foodType = "全部", foodSort = { k:"tabelog", dir:-1 };
+  let FOOD = [], foodType = "全部", foodSort = Object.assign({ k:"tabelog", dir:-1 }, store.get("foodsort", {}));
+  if (!["tabelog","google","close","name","area","day","type"].includes(foodSort.k)) foodSort = { k:"tabelog", dir:-1 };
   async function loadFood(){
     if (Sheet.on()){
       FOOD = (await loadShared("restaurants", "#foodSync", () => store.get("food", null) || T.restaurants.map(r => ({ id: uid(), ...r })))).map(normFood);
@@ -617,7 +618,16 @@
     }
     renderFood();
   }
-  function normFood(r){ ["tabelog","google","tabelogReviews","googleReviews"].forEach(k => { if (r[k] !== "" && r[k] != null) r[k] = Number(r[k]); }); return r; }
+  /* 試算表還沒有新欄位（營業時間、Google）時，用這一版網站的資料補上（依店名對） */
+  const FOOD_FILL = ["hours","close","gmap","google","googleReviews","url"];
+  function normFood(r){
+    const base = T.restaurants.find(x => x.name === r.name);
+    if (base) FOOD_FILL.forEach(k => { if ((r[k] === "" || r[k] == null) && base[k] !== "" && base[k] != null) r[k] = base[k]; });
+    ["tabelog","google","tabelogReviews","googleReviews"].forEach(k => { if (r[k] !== "" && r[k] != null) r[k] = Number(r[k]); });
+    return r;
+  }
+  /* 打烊時間 → 分鐘；過午夜寫成 27:00；沒有資料回傳 null（排序時永遠放最後） */
+  const closeMin = v => { const m = /^(\d{1,2}):(\d{2})/.exec(String(v || "")); return m ? (+m[1]) * 60 + (+m[2]) : null; };
   /* 餐廳分類：一條可左右滑的 tab，底線指示條滑到選中的那一格 */
   let foodTabsKey = "";
   function foodTabs(types){
@@ -641,28 +651,38 @@
     foodTabs(types);
     let rows = FOOD.filter(f => foodType === "全部" || f.type === foodType);
     const k = foodSort.k;
+    const val = f => k === "close" ? closeMin(f.close) : (["tabelog","google"].includes(k) ? (f[k] === "" || f[k] == null || isNaN(f[k]) ? null : Number(f[k])) : f[k]);
     rows.sort((a,b) => {
-      if (k === "tabelog" && foodType === "全部" && a.type !== b.type) return String(a.type).localeCompare(String(b.type), "zh-Hant");
-      const x = a[k], y = b[k];
-      if (typeof x === "number" || typeof y === "number") return ((Number(x)||0) - (Number(y)||0)) * foodSort.dir;
-      return String(x||"").localeCompare(String(y||""), "zh-Hant") * foodSort.dir;
+      const x = val(a), y = val(b);
+      if (x == null || x === "") return (y == null || y === "") ? 0 : 1;   // 沒資料的永遠排最後
+      if (y == null || y === "") return -1;
+      if (typeof x === "number" && typeof y === "number") return (x - y) * foodSort.dir || (Number(b.tabelog)||0) - (Number(a.tabelog)||0);
+      return String(x).localeCompare(String(y), "zh-Hant") * foodSort.dir;
     });
+    $$("#foodSortBar [data-sort]").forEach(b => { const on = b.dataset.sort === k; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
     const th = (key, label) => `<th class="sortable" data-k="${key}">${label}${foodSort.k===key?(foodSort.dir<0?" ↓":" ↑"):""}</th>`;
-    $("#foodTable").innerHTML = `<tr>${th("name","店名")}${th("type","種類")}${th("tabelog","Tabelog")}${th("google","Google")}${th("area","地區")}<th>公休</th><th>預約</th>${th("day","排在")}<th></th></tr>` +
+    const gmap = f => safeUrl(f.gmap) ? `<a class="gmap" href="${esc(safeUrl(f.gmap))}" target="_blank" rel="noopener">地圖 ↗</a>` : "";
+    $("#foodTable").innerHTML = `<tr>${th("name","店名")}${th("type","種類")}${th("tabelog","Tabelog")}${th("google","Google")}${th("close","營業時間")}${th("area","地區")}<th>公休</th><th>預約</th>${th("day","排在")}<th></th></tr>` +
       rows.map(f => `<tr>
         <td class="name">${safeUrl(f.url) ? `<a href="${esc(safeUrl(f.url))}" target="_blank" rel="noopener">${esc(f.name)}</a>` : `<b>${esc(f.name)}</b>`}</td>
         <td class="extra" data-l="種類"><span class="tag t-food">${esc(f.type)}</span></td>
         <td class="num" data-l="Tabelog"><span class="score ${Number(f.tabelog)>=3.8?"hi":""}">${f.tabelog!==""&&f.tabelog!=null?Number(f.tabelog).toFixed(2):"—"}</span><br><span class="muted small">${f.tabelogReviews?Number(f.tabelogReviews).toLocaleString()+" 則":""}</span></td>
-        <td class="num extra" data-l="Google">${f.google!==""&&f.google!=null?Number(f.google).toFixed(1):"—"}<br><span class="muted small">${f.googleReviews?Number(f.googleReviews).toLocaleString()+" 則":""}</span></td>
+        <td class="num" data-l="Google">${f.google!==""&&f.google!=null&&!isNaN(f.google)?Number(f.google).toFixed(1):"—"} ${gmap(f)}<br><span class="muted small">${f.googleReviews?Number(f.googleReviews).toLocaleString()+" 則":""}</span></td>
+        <td class="hours" data-l="營業時間">${f.hours ? esc(f.hours) : `<span class="muted">—</span>`}</td>
         <td data-l="地區">${esc(f.area)}</td><td class="extra" data-l="公休">${esc(f.closed)}</td><td class="extra" data-l="預約">${esc(f.reserve)}</td>
         <td data-l="排在">${f.day?`<span class="tag ${/^Day/.test(f.day)?"t-accent":"t-move"}">${esc(f.day)}</span>`:""}</td>
         <td class="act"><button class="btn danger sm" data-del="${esc(f.id)}">刪除</button></td></tr>`).join("");
   }
   $("#foodTypes").addEventListener("click", e => { const b = e.target.closest("[data-t]"); if (b){ foodType = b.dataset.t; renderFood(); } });
+  /* 排序按鈕（手機看不到表頭，所以另外放一排）：Tabelog 分數高→低、營業到最晚→最早、Google 分數高→低 */
+  $("#foodSortBar").addEventListener("click", e => {
+    const b = e.target.closest("[data-sort]"); if (!b) return;
+    foodSort = { k: b.dataset.sort, dir: -1 }; store.set("foodsort", foodSort); renderFood();
+  });
   window.addEventListener("resize", () => foodInd(false));
   $("#foodTable").addEventListener("click", async e => {
     const h = e.target.closest("th[data-k]");
-    if (h){ const k = h.dataset.k; foodSort = { k, dir: foodSort.k===k ? -foodSort.dir : (["tabelog","google"].includes(k)?-1:1) }; renderFood(); return; }
+    if (h){ const k = h.dataset.k; foodSort = { k, dir: foodSort.k===k ? -foodSort.dir : (["tabelog","google","close"].includes(k)?-1:1) }; store.set("foodsort", foodSort); renderFood(); return; }
     const d = e.target.closest("[data-del]");
     if (!d){ const tr = e.target.closest("tr"); if (tr && isPhone() && !e.target.closest("a")) tr.classList.toggle("open"); return; }
     const f = FOOD.find(x => x.id === d.dataset.del); if (!f || !confirm(`刪除「${f.name}」？`)) return;
@@ -776,8 +796,8 @@
     });
     $("#sheetMerge").addEventListener("click", async () => {
       if (!Sheet.on()) { alert("請先儲存 Web App 網址與通行碼。"); return; }
-      if (!confirm("把這一版行程的餐廳合併進試算表？\n・試算表沒有的店會新增\n・已經有的店只更新「排在」欄位")) return;
-      try { const r = await Sheet.post({ action:"merge", sheet:"restaurants", key:"name", fields:["day","closed","reserve"], rows: T.restaurants.map(x => ({ id: uid(), ...x })) }); alert(`新增 ${r.added} 家、更新 ${r.updated} 家。`); loadFood(); }
+      if (!confirm("把這一版行程的餐廳合併進試算表？\n・試算表沒有的店會新增\n・已經有的店會更新分數、Google、營業時間、公休、預約、「排在」")) return;
+      try { const r = await Sheet.post({ action:"merge", sheet:"restaurants", key:"name", fields:["type","area","url","tabelog","tabelogReviews","google","googleReviews","hours","close","gmap","day","closed","reserve"], rows: T.restaurants.map(x => ({ id: uid(), ...x })) }); alert(`新增 ${r.added} 家、更新 ${r.updated} 家。`); loadFood(); }
       catch(err){ alert("合併失敗：" + errText(err)); }
     });
   })();

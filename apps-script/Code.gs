@@ -13,7 +13,7 @@
  *    之後每 6 小時自動抓 tenki.jp 寫入 foliage 分頁。要停用就執行 removeTrigger()。
  */
 const HEADERS = {
-  restaurants: ["id","name","type","tabelog","tabelogReviews","google","googleReviews","area","closed","reserve","day","url"],
+  restaurants: ["id","name","type","tabelog","tabelogReviews","google","googleReviews","area","closed","reserve","day","url","hours","close","gmap"],
   expenses:    ["id","day","cat","item","amount","pay","note","created"],
   packing:     ["id","person","item","checked","note","order"],
   foliage:     ["id","name","url","status","desc","forecast","asOf","fetched","ok"],

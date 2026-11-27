@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700&display=swap" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="assets/style.css?v=202611272300">
+<link rel="stylesheet" href="assets/style.css?v=202611280010">
 <script>
   // theme: ?theme=indigo|maple overrides the saved choice
   (function(){var q=new URLSearchParams(location.search).get('theme');var s=null;try{s=localStorage.getItem('tk26-theme')}catch(e){}
@@ -118,10 +118,16 @@
     <!-- 04 food -->
     <section class="sec" id="sec-food">
       <div class="sec-head"><span class="sec-n">04</span><h2>餐廳</h2></div>
-      <p class="lede">店名連到 Tabelog。設定好 Google Sheet 後，新增、刪除會同步到試算表；還沒設定時，資料只存在這台裝置。</p>
+      <p class="lede">店名連到 Tabelog，「地圖 ↗」開 Google 地圖。設定好 Google Sheet 後，新增、刪除會同步到試算表；還沒設定時，資料只存在這台裝置。</p>
       <div class="toolbar">
         <div class="utabs" id="foodTypes" role="tablist" aria-label="餐廳分類"></div>
         <span class="sync" id="foodSync"><i class="dot"></i><span>本機模式</span></span>
+      </div>
+      <div class="sortbar" id="foodSortBar" role="group" aria-label="排序">
+        <span class="muted small">排序</span>
+        <button class="chip" type="button" data-sort="tabelog" aria-pressed="true">Tabelog 分數</button>
+        <button class="chip" type="button" data-sort="close" aria-pressed="false">營業到最晚</button>
+        <button class="chip" type="button" data-sort="google" aria-pressed="false">Google 分數</button>
       </div>
       <div class="panel flush"><div class="tbl-wrap"><table class="dt cards" id="foodTable"></table></div></div>
       <details class="panel" style="margin-top:14px" id="foodAddBox">
@@ -134,13 +140,16 @@
           <label>Tabelog 評論數<input name="tabelogReviews" type="number"></label>
           <label>Google 分數<input name="google" type="number" step="0.1"></label>
           <label>Google 評論數<input name="googleReviews" type="number"></label>
+          <label>Google 地圖網址<input name="gmap" type="url" placeholder="https://www.google.com/maps/..."></label>
+          <label>營業時間<input name="hours" placeholder="11:00–15:00／17:00–22:00"></label>
+          <label>最晚打烊<input name="close" placeholder="22:00（過午夜寫 26:00）" pattern="\d{1,2}:\d{2}"></label>
           <label>地區<input name="area"></label>
           <label>公休<input name="closed"></label>
           <label>預約方式<input name="reserve"></label>
           <label>排在<input name="day" placeholder="Day 3／備案"></label>
           <button class="btn" type="submit">新增</button>
         </form>
-        <datalist id="typeList"><option>拉麵</option><option>炸豬排</option><option>壽司</option><option>鰻魚</option><option>早餐・咖啡</option></datalist>
+        <datalist id="typeList"><option>拉麵</option><option>炸豬排</option><option>壽司</option><option>鰻魚</option><option>早餐・咖啡</option><option>親子丼</option><option>居酒屋</option><option>咖哩</option><option>烏龍麵</option></datalist>
       </details>
     </section>
 
@@ -426,8 +435,8 @@
 
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
-<script defer src="assets/data.js?v=202611272300"></script>
-<script defer src="assets/tax.js?v=202611272300"></script>
-<script defer src="assets/app.js?v=202611272300"></script>
+<script defer src="assets/data.js?v=202611280010"></script>
+<script defer src="assets/tax.js?v=202611280010"></script>
+<script defer src="assets/app.js?v=202611280010"></script>
 </body>
 </html>
